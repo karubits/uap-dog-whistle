@@ -10,7 +10,12 @@
       margin: 2rem;
     }
     h1 {
-      margin-bottom: 1rem;
+      margin-bottom: 0.5rem;
+    }
+    .version {
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+      color: #666;
     }
     button {
       font-size: 1.2rem;
@@ -48,6 +53,8 @@
 </head>
 <body>
   <h1>UAP Summoning Signal</h1>
+  <div class="version">Version 2.0</div>
+
   <button id="toggleBtn">Start</button>
 
   <div class="content">
@@ -88,7 +95,7 @@
             Adds a near-ultrasonic tone above human hearing range, allegedly heard by animals or used in "dog whistles".
           </td>
           <td>
-            Matches the "ultrasonic" or high-frequency element specified in the tweet.
+            Matches the "ultrasonic" or high-frequency element specified in the tweet, now pulsed for a true "ping".
           </td>
         </tr>
         <tr>
@@ -148,7 +155,7 @@
   </div>
 
   <script>
-    // We'll store references to each oscillator, gain node, and the AudioContext here
+    // We'll store references to each oscillator, gain node, intervals, and the AudioContext here
     let audioCtx;
     let isPlaying = false;
 
@@ -156,14 +163,16 @@
     let baseOscillator;     // 100 Hz oscillator modulated at 7.83 Hz
     let modOscillator;      // 7.83 Hz modulator
     let harmonic528;        // 528 Hz oscillator
-    let ultrasonic17k;      // 17 kHz oscillator
     let ambient432;         // 432 Hz oscillator
     let noiseSource;        // White noise for "breath" layer
     let noiseGain;          // Gain for breath layer
     let breathLFO;          // LFO for shaping breath layer
 
-    // For the 2.5 kHz chirps
+    // Intervals
     let chirpInterval;
+    let ultrasonicInterval;
+
+    // For the 2.5 kHz chirps
     const chirpDuration = 0.25; // 250 ms chirp
     const chirpFrequency = 2500;
     const chirpIntervalTime = 10000; // 10 seconds in ms
@@ -183,21 +192,17 @@
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
       // ===== Schumann-like modulated tone (7.83 Hz amplitude mod of 100 Hz) =====
-      // Carrier oscillator at 100 Hz
       baseOscillator = audioCtx.createOscillator();
       baseOscillator.frequency.value = 100;
 
-      // Gain for carrier
       let baseGain = audioCtx.createGain();
       baseGain.gain.value = 0; // we'll modulate this gain
 
-      // Mod oscillator at 7.83 Hz
       modOscillator = audioCtx.createOscillator();
       modOscillator.frequency.value = 7.83;
 
-      // Connect mod oscillator -> baseGain.gain
       let modGain = audioCtx.createGain();
-      modGain.gain.value = 0.5; // amplitude of modulation
+      modGain.gain.value = 0.5; // amplitude modulation depth
       modOscillator.connect(modGain);
       modGain.connect(baseGain.gain);
 
@@ -210,12 +215,19 @@
       harm528Gain.gain.value = 0.2; // set volume to taste
       harmonic528.connect(harm528Gain).connect(audioCtx.destination);
 
-      // ===== 17 kHz Ultrasonic Ping =====
-      ultrasonic17k = audioCtx.createOscillator();
-      ultrasonic17k.frequency.value = 17000;
-      let ultrasonicGain = audioCtx.createGain();
-      ultrasonicGain.gain.value = 0.1;
-      ultrasonic17k.connect(ultrasonicGain).connect(audioCtx.destination);
+      // ===== 17 kHz Ultrasonic Ping (short bursts) =====
+      // We'll create an interval that generates a ~0.05s pulse every 3 seconds
+      ultrasonicInterval = setInterval(() => {
+        const pingOsc = audioCtx.createOscillator();
+        pingOsc.frequency.value = 17000;
+        const pingGain = audioCtx.createGain();
+        pingGain.gain.value = 0.2; // volume for the ultrasonic ping
+        pingOsc.connect(pingGain).connect(audioCtx.destination);
+
+        // Start and stop
+        pingOsc.start();
+        pingOsc.stop(audioCtx.currentTime + 0.05); 
+      }, 3000); // pulse every 3 seconds
 
       // ===== 432 Hz Ambient Pad =====
       ambient432 = audioCtx.createOscillator();
@@ -231,11 +243,10 @@
       noiseGain = audioCtx.createGain();
       noiseGain.gain.value = 0.05; // base level for the noise
 
-      // Low-frequency oscillator for noise "breath" (vary gain gently)
       breathLFO = audioCtx.createOscillator();
       breathLFO.frequency.value = 0.2; // very slow
       let breathLFOTarget = audioCtx.createGain();
-      breathLFOTarget.gain.value = 0.02; // how much the LFO will vary amplitude
+      breathLFOTarget.gain.value = 0.02; // how much the LFO varies amplitude
       breathLFO.connect(breathLFOTarget);
       breathLFOTarget.connect(noiseGain.gain);
 
@@ -245,7 +256,6 @@
       baseOscillator.start();
       modOscillator.start();
       harmonic528.start();
-      ultrasonic17k.start();
       ambient432.start();
       noiseSource.start();
       breathLFO.start();
@@ -268,22 +278,26 @@
     }
 
     function stopAudio() {
+      // Stop continuous oscillators
       if (baseOscillator) baseOscillator.stop();
       if (modOscillator) modOscillator.stop();
       if (harmonic528) harmonic528.stop();
-      if (ultrasonic17k) ultrasonic17k.stop();
       if (ambient432) ambient432.stop();
       if (noiseSource) noiseSource.stop();
       if (breathLFO) breathLFO.stop();
 
+      // Clear intervals for pulsed tones
       clearInterval(chirpInterval);
+      clearInterval(ultrasonicInterval);
 
+      // Close audio context
       audioCtx.close();
       audioCtx = null;
+
+      // Nullify references
       baseOscillator = null;
       modOscillator = null;
       harmonic528 = null;
-      ultrasonic17k = null;
       ambient432 = null;
       noiseSource = null;
       breathLFO = null;
@@ -302,4 +316,3 @@
   </script>
 </body>
 </html>
-
