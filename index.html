@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Summon UAP Sound Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 2rem;
+    }
+    h1 {
+      margin-bottom: 1rem;
+    }
+    button {
+      font-size: 1.2rem;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+    }
+    .content {
+      max-width: 600px;
+      margin: 2rem auto;
+      text-align: left;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.5rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    .disclaimer {
+      background: #f9f9f9;
+      border-left: 4px solid #999;
+      padding: 1rem;
+      margin-top: 2rem;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+    .disclaimer h2 {
+      margin-top: 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>UAP Summoning Signal</h1>
+  <button id="toggleBtn">Start</button>
+
+  <div class="content">
+    <p>
+      This website generates a blend of continuous and periodic tones—including sub-audible modulations and high-frequency “dog whistle” sounds—to mimic a set of rumored “UAP summoning” signals. Each tone is carefully constructed using the Web Audio API and can be toggled on or off with the button above.
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Frequency / Layer</th>
+          <th>Purpose</th>
+          <th>Match to Requirements</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>7.83 Hz (via modulation of 100 Hz)</td>
+          <td>
+            Simulates the Schumann resonance by amplitude-modulating a 100 Hz carrier with a ~7.83 Hz oscillator.
+          </td>
+          <td>
+            Aligned with tweet spec for Schumann resonance / low-frequency Earth-based “signal”.
+          </td>
+        </tr>
+        <tr>
+          <td>528 Hz (Harmonic)</td>
+          <td>
+            Considered a “healing” or “DNA repair” frequency in some theories. Provides a strong mid-range tone.
+          </td>
+          <td>
+            Matches tweet requirement for a 528 Hz “harmonic” presence.
+          </td>
+        </tr>
+        <tr>
+          <td>17 kHz (Ultrasonic Ping)</td>
+          <td>
+            Adds a near-ultrasonic tone above human hearing range, allegedly heard by animals or used in “dog whistles”.
+          </td>
+          <td>
+            Matches the “ultrasonic” or high-frequency element specified in the tweet.
+          </td>
+        </tr>
+        <tr>
+          <td>2.5 kHz (Chirps every 10 s)</td>
+          <td>
+            Periodic short bursts of mid-high frequency, creating a “ping” or “chirp” to add a distinct signal flare.
+          </td>
+          <td>
+            Matches the tweet’s mention of intermittent chirps around 2.5 kHz.
+          </td>
+        </tr>
+        <tr>
+          <td>432 Hz (Ambient Pad)</td>
+          <td>
+            Often regarded as a more “natural” or “calming” reference frequency, providing a warm bed of sound.
+          </td>
+          <td>
+            Aligns with tweet reference to the 432 Hz ambient tone.
+          </td>
+        </tr>
+        <tr>
+          <td>White Noise + LFO “Breath” Layer</td>
+          <td>
+            White noise softly modulated at a low rate to simulate a subtle “breathing” or “windy” backdrop.
+          </td>
+          <td>
+            Adds a natural-sounding layer to the signal, as described in the tweet’s “breath” effect requirement.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="disclaimer">
+      <h2>Disclaimer</h2>
+      <p>
+        The sounds produced by this website are purely experimental and for entertainment or curiosity. There is no scientific guarantee that these tones have any real-world effects on unidentified aerial phenomena or biological systems. Some of the frequencies exceed the normal human hearing range, and their audibility may vary widely among individuals and audio equipment.
+      </p>
+      <p>
+        High-frequency sounds played at elevated volumes can risk hearing damage. Always monitor your volume levels and consider using professional audio equipment for any extended listening. The developer assumes no liability for damages or health issues resulting from misuse of these audio signals.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    // We'll store references to each oscillator, gain node, and the AudioContext here
+    let audioCtx;
+    let isPlaying = false;
+
+    // Our oscillators
+    let baseOscillator;     // 100 Hz oscillator modulated at 7.83 Hz
+    let modOscillator;      // 7.83 Hz modulator
+    let harmonic528;        // 528 Hz oscillator
+    let ultrasonic17k;      // 17 kHz oscillator
+    let ambient432;         // 432 Hz oscillator
+    let noiseSource;        // White noise for "breath" layer
+    let noiseGain;          // Gain for breath layer
+    let breathLFO;          // LFO for shaping breath layer
+
+    // For the 2.5 kHz chirps
+    let chirpInterval;
+    const chirpDuration = 0.25; // 250 ms chirp
+    const chirpFrequency = 2500;
+    const chirpIntervalTime = 10000; // 10 seconds in ms
+
+    function createNoiseBuffer(context) {
+      // create a 2-second buffer of white noise
+      const bufferSize = context.sampleRate * 2;
+      const buffer = context.createBuffer(1, bufferSize, context.sampleRate);
+      const output = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1; // white noise
+      }
+      return buffer;
+    }
+
+    function startAudio() {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+      // ===== Schumann-like modulated tone (7.83 Hz amplitude mod of 100 Hz) =====
+      // Carrier oscillator at 100 Hz
+      baseOscillator = audioCtx.createOscillator();
+      baseOscillator.frequency.value = 100;
+
+      // Gain for carrier
+      let baseGain = audioCtx.createGain();
+      baseGain.gain.value = 0; // we'll modulate this gain
+
+      // Mod oscillator at 7.83 Hz
+      modOscillator = audioCtx.createOscillator();
+      modOscillator.frequency.value = 7.83;
+
+      // Connect mod oscillator -> baseGain.gain
+      let modGain = audioCtx.createGain();
+      modGain.gain.value = 0.5; // amplitude of modulation
+      modOscillator.connect(modGain);
+      modGain.connect(baseGain.gain);
+
+      baseOscillator.connect(baseGain).connect(audioCtx.destination);
+
+      // ===== 528 Hz Harmonic =====
+      harmonic528 = audioCtx.createOscillator();
+      harmonic528.frequency.value = 528;
+      let harm528Gain = audioCtx.createGain();
+      harm528Gain.gain.value = 0.2; // set volume to taste
+      harmonic528.connect(harm528Gain).connect(audioCtx.destination);
+
+      // ===== 17 kHz Ultrasonic Ping =====
+      ultrasonic17k = audioCtx.createOscillator();
+      ultrasonic17k.frequency.value = 17000;
+      let ultrasonicGain = audioCtx.createGain();
+      ultrasonicGain.gain.value = 0.1;
+      ultrasonic17k.connect(ultrasonicGain).connect(audioCtx.destination);
+
+      // ===== 432 Hz Ambient Pad =====
+      ambient432 = audioCtx.createOscillator();
+      ambient432.frequency.value = 432;
+      let ambientGain = audioCtx.createGain();
+      ambientGain.gain.value = 0.2;
+      ambient432.connect(ambientGain).connect(audioCtx.destination);
+
+      // ===== "Breath" Layer (White Noise with subtle LFO) =====
+      noiseSource = audioCtx.createBufferSource();
+      noiseSource.buffer = createNoiseBuffer(audioCtx);
+      noiseSource.loop = true;
+      noiseGain = audioCtx.createGain();
+      noiseGain.gain.value = 0.05; // base level for the noise
+
+      // Low-frequency oscillator for noise "breath" (vary gain gently)
+      breathLFO = audioCtx.createOscillator();
+      breathLFO.frequency.value = 0.2; // very slow
+      let breathLFOTarget = audioCtx.createGain();
+      breathLFOTarget.gain.value = 0.02; // how much the LFO will vary amplitude
+      breathLFO.connect(breathLFOTarget);
+      breathLFOTarget.connect(noiseGain.gain);
+
+      noiseSource.connect(noiseGain).connect(audioCtx.destination);
+
+      // Start everything
+      baseOscillator.start();
+      modOscillator.start();
+      harmonic528.start();
+      ultrasonic17k.start();
+      ambient432.start();
+      noiseSource.start();
+      breathLFO.start();
+
+      // Schedule 2.5 kHz chirps every 10 seconds
+      chirpInterval = setInterval(() => {
+        const chirpOsc = audioCtx.createOscillator();
+        chirpOsc.frequency.value = chirpFrequency;
+        const chirpGain = audioCtx.createGain();
+        chirpGain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        // fade out quickly after chirpDuration
+        chirpGain.gain.linearRampToValueAtTime(
+          0,
+          audioCtx.currentTime + chirpDuration
+        );
+        chirpOsc.connect(chirpGain).connect(audioCtx.destination);
+        chirpOsc.start();
+        chirpOsc.stop(audioCtx.currentTime + chirpDuration);
+      }, chirpIntervalTime);
+    }
+
+    function stopAudio() {
+      if (baseOscillator) baseOscillator.stop();
+      if (modOscillator) modOscillator.stop();
+      if (harmonic528) harmonic528.stop();
+      if (ultrasonic17k) ultrasonic17k.stop();
+      if (ambient432) ambient432.stop();
+      if (noiseSource) noiseSource.stop();
+      if (breathLFO) breathLFO.stop();
+
+      clearInterval(chirpInterval);
+
+      audioCtx.close();
+      audioCtx = null;
+      baseOscillator = null;
+      modOscillator = null;
+      harmonic528 = null;
+      ultrasonic17k = null;
+      ambient432 = null;
+      noiseSource = null;
+      breathLFO = null;
+    }
+
+    document.getElementById("toggleBtn").addEventListener("click", () => {
+      if (!isPlaying) {
+        startAudio();
+        document.getElementById("toggleBtn").textContent = "Stop";
+      } else {
+        stopAudio();
+        document.getElementById("toggleBtn").textContent = "Start";
+      }
+      isPlaying = !isPlaying;
+    });
+  </script>
+</body>
+</html>
+
