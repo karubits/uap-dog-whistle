@@ -32,6 +32,7 @@
       border-collapse: collapse;
       margin-top: 1rem;
       box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      font-size: 0.9rem;  /* Slightly smaller font for dense content */
     }
     th {
       background-color: #e3f2fd;  /* Light blue background */
@@ -46,6 +47,11 @@
       padding: 0.75rem;
       text-align: left;
       vertical-align: top;
+      line-height: 1.4;  /* Better line spacing for readability */
+    }
+    td:first-child {
+      font-weight: bold;  /* Make frequency column stand out */
+      white-space: nowrap;  /* Keep frequency on one line */
     }
     .disclaimer {
       background: #f9f9f9;
@@ -96,7 +102,7 @@
 
   <h1>UAP Dog Whistle 🛸❓🤔</h1>
   <div class="subtitle">(from a dubious source)</div>
-  <div class="version">Version 2.3</div>
+  <div class="version">Version 2.4</div>
 
   <button id="toggleBtn">Start</button>
 
@@ -109,63 +115,129 @@
       <thead>
         <tr>
           <th>Frequency / Layer</th>
-          <th>Purpose</th>
-          <th>Match to Requirements</th>
+          <th>Spiritual/Esoteric Perspective</th>
+          <th>Scientific/Technical Perspective</th>
+          <th>Implementation Details</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td>7.83 Hz (via modulation of 100 Hz)</td>
+          <td>7.83 Hz</td>
+          <td>
+            - Often cited as the "Schumann Resonance," thought to be Earth's "heartbeat"<br>
+            - Some believe it's linked to grounding, well-being, and resonance with the planet<br>
+            - Used in metaphysical practices including UAP summoning rituals<br>
+            - Believed to open channels for spiritual insight and contact with other beings
+          </td>
+          <td>
+            - 7.83 Hz is the fundamental Schumann resonance of Earth's electromagnetic resonance cavity<br>
+            - Coincides with theta/alpha brainwave border, but no proven causation<br>
+            - Audible sound at 7.83 Hz is below most humans' hearing range<br>
+            - Studies show minor correlations with brain activity, but no definitive evidence of direct effects<br>
+            - Claims of UAP summoning or direct health influences lack scientific support
+          </td>
           <td>
             Simulates the Schumann resonance by amplitude-modulating a 100 Hz carrier with a ~7.83 Hz oscillator.
           </td>
+        </tr>
+        <tr>
+          <td>528 Hz</td>
           <td>
-            Aligned with tweet spec for Schumann resonance / low-frequency Earth-based "signal".
+            - Known as the "Love" or "Miracle" frequency<br>
+            - Part of the Solfeggio scale tradition<br>
+            - Believed to heal DNA, repair cells, and emanate positive energy<br>
+            - Used in meditations and sound baths for transformation and harmony<br>
+            - Said to invite benevolent energies and higher consciousness
+          </td>
+          <td>
+            - Simply a mid-range pitch (near C5 if you tune in A=440 Hz)<br>
+            - No peer-reviewed evidence of DNA repair or healing powers<br>
+            - Physiologically behaves like any other frequency<br>
+            - Benefits likely due to general musical effects or placebo<br>
+            - No special properties compared to other musical tones
+          </td>
+          <td>
+            Provides a strong mid-range tone, implemented as a pure sine wave oscillator.
           </td>
         </tr>
         <tr>
-          <td>528 Hz (Harmonic)</td>
+          <td>432 Hz</td>
           <td>
-            Considered a "healing" or "DNA repair" frequency in some theories. Provides a strong mid-range tone.
+            - Considered the "natural frequency" of the universe<br>
+            - Claimed to resonate with universal patterns and ancient geometry<br>
+            - Believed to be more harmonious with cosmic vibrations<br>
+            - Said to reduce stress and awaken spirituality<br>
+            - Preferred by some over standard 440 Hz tuning
           </td>
           <td>
-            Matches tweet requirement for a 528 Hz "harmonic" presence.
-          </td>
-        </tr>
-        <tr>
-          <td>17 kHz (Ultrasonic Ping)</td>
-          <td>
-            Adds a near-ultrasonic tone above human hearing range, allegedly heard by animals or used in "dog whistles".
+            - Just an alternative musical tuning reference<br>
+            - No special physical significance<br>
+            - Historically, many tuning standards have been used (415 Hz, 432 Hz, 440 Hz)<br>
+            - No proven physiological difference between 432 Hz and 440 Hz<br>
+            - Any benefits are subjective or due to musical composition
           </td>
           <td>
-            Matches the "ultrasonic" or high-frequency element specified in the tweet, now pulsed for a true "ping".
-          </td>
-        </tr>
-        <tr>
-          <td>2.5 kHz (Chirps every 10 s)</td>
-          <td>
-            Periodic short bursts of mid-high frequency, creating a "ping" or "chirp" to add a distinct signal flare.
-          </td>
-          <td>
-            Matches the tweet's mention of intermittent chirps around 2.5 kHz.
+            Provides a warm bed of sound as an ambient pad tone.
           </td>
         </tr>
         <tr>
-          <td>432 Hz (Ambient Pad)</td>
+          <td>2.5 kHz</td>
           <td>
-            Often regarded as a more "natural" or "calming" reference frequency, providing a warm bed of sound.
+            - Used in spiritual UAP-summoning practices as an attention signal<br>
+            - Thought to cut through normal perception<br>
+            - Compared to natural calls that might attract entities<br>
+            - Believed to help broadcast intent to other realms<br>
+            - Some see it as a spiritual "alarm" or beacon
           </td>
           <td>
-            Aligns with tweet reference to the 432 Hz ambient tone.
+            - Falls within peak human hearing sensitivity (2-5 kHz)<br>
+            - Simply a sound wave with ~0.4m wavelength<br>
+            - Naturally attention-grabbing due to human ear sensitivity<br>
+            - Used in audio production for clarity and presence<br>
+            - No evidence of supernatural properties
+          </td>
+          <td>
+            Periodic short bursts every 10 seconds, creating a distinct "chirp" signal.
           </td>
         </tr>
         <tr>
-          <td>White Noise + LFO "Breath" Layer</td>
+          <td>17 kHz</td>
           <td>
-            White noise softly modulated at a low rate to simulate a subtle "breathing" or "windy" backdrop.
+            - Considered a "dog whistle for aliens"<br>
+            - Believed to reach realms beyond normal sound<br>
+            - Used in UAP summoning as a subtle beacon<br>
+            - Thought to transcend ordinary communication<br>
+            - Seen as a way to signal presence to other beings
           </td>
           <td>
-            Adds a natural-sounding layer to the signal, as described in the tweet's "breath" effect requirement.
+            - Near the upper limit of human hearing<br>
+            - Many adults cannot hear above ~16 kHz<br>
+            - Dissipates quickly in atmosphere<br>
+            - Used in pest control and teen deterrent devices<br>
+            - No evidence of exotic interaction capabilities
+          </td>
+          <td>
+            Adds a near-ultrasonic tone pulsed every 3 seconds.
+          </td>
+        </tr>
+        <tr>
+          <td>"Breath Layer"<br>(White Noise)</td>
+          <td>
+            - Represents life force or spirit in practice<br>
+            - Thought to infuse signals with living essence<br>
+            - Used to create sense of conscious presence<br>
+            - Believed to attract benevolent attention<br>
+            - Helps participants feel connected through breath synchronization
+          </td>
+          <td>
+            - Contains all frequencies at equal intensity<br>
+            - Amplitude modulation creates breathing effect<br>
+            - Masks sudden sounds and provides natural backdrop<br>
+            - Psychological benefits through familiar patterns<br>
+            - No special properties beyond normal acoustics
+          </td>
+          <td>
+            White noise softly modulated at a low rate to simulate subtle "breathing."
           </td>
         </tr>
       </tbody>
