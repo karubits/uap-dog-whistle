@@ -108,13 +108,36 @@
 
   <h1>UAP Dog Whistle 🛸❓🤔</h1>
   <div class="subtitle">(from a dubious source)</div>
-  <div class="version">Version 2.6</div>
+  <div class="version">Version 2.7</div>
 
   <button id="toggleBtn">Start</button>
 
   <div class="content">
+    <h1>UAP "Dog Whistle" Signals: Audio Frequency Claims vs RF Signal Investigations</h1>
+
+    <div class="top-disclaimer">
+      <h2>⚠️ Important Notice</h2>
+      <p>
+        The audio frequencies discussed here originated from an unverified social media claim and have no scientific validation. This project was created as a programming experiment to demonstrate AI-assisted code generation, not as a proven UAP (Unidentified Aerial Phenomena) summoning tool. It is not connected to the "Skywatcher dog whistle" devices reportedly used at places like Skinwalker Ranch, which rely on radio frequency signals (RF) – not audio tones. For information on those RF-based approaches, see RF-Based Scientific Investigations below. The author makes no claims about the effectiveness of any of these signals; they should be treated as speculative and anecdotal.
+      </p>
+    </div>
+
+    <h2>Audio-Based Claims from Social Media</h2>
     <p>
-      This website generates a blend of continuous and periodic tones—including sub-audible modulations and high-frequency "dog whistle" sounds—to mimic a set of rumored "UAP summoning" signals. Each tone is carefully constructed using the Web Audio API and can be toggled on or off with the button above.
+      Background: In April 2025, a Twitter user @JasonWilde108 (on X) posted a guide to creating a so-called "dog whistle" for summoning UAPs (UFOs) using audio frequencies. The post, which spread through Reddit and social media, described a layered audio signal combining several tones:
+    </p>
+
+    <ul>
+      <li>7.83 Hz (Schumann Resonance)</li>
+      <li>528 Hz (the "Love" frequency)</li>
+      <li>432 Hz (an ambient pad tone)</li>
+      <li>2.5 kHz (periodic chirps)</li>
+      <li>17 kHz (ultrasonic "ping")</li>
+      <li>A white noise "breath" layer</li>
+    </ul>
+
+    <p>
+      These frequencies were chosen for their esoteric or spiritual reputations – ranging from Earth's "heartbeat" to healing tones – in the belief that together they might attract UAPs. Below is a comparison of the claimed spiritual significance versus the scientific perspective on each audio component. (Keep in mind: no scientific evidence currently supports the idea that audible sound can summon UAPs.)
     </p>
 
     <table>
@@ -128,188 +151,156 @@
       </thead>
       <tbody>
         <tr>
-          <td>7.83 Hz</td>
+          <td><strong>7.83 Hz</strong><br><small>("Schumann Resonance")</small></td>
           <td>
-            - Often cited as the "Schumann Resonance," thought to be Earth's "heartbeat"[1]<br>
-            - Some believe it's linked to grounding, well-being, and resonance with the planet<br>
-            - Used in metaphysical practices including UAP summoning rituals<br>
-            - Believed to open channels for spiritual insight and contact with other beings
+            - Often cited as Earth's <strong>"Schumann Resonance"</strong>, thought to be Earth's "heartbeat" and a grounding frequency<br>
+            - Believed to promote well-being and resonate with the planet's energy, used in meditation and even UAP summoning rituals<br>
+            - Claimed to open spiritual channels for contact with other beings
           </td>
           <td>
-            - 7.83 Hz is the fundamental Schumann resonance of Earth's electromagnetic resonance cavity[1]<br>
-            - Coincides with theta/alpha brainwave border, but no proven causation[2]<br>
-            - Audible sound at 7.83 Hz is below most humans' hearing range<br>
-            - Studies show minor correlations with brain activity, but no definitive evidence of direct effects<br>
-            - Claims of UAP summoning or direct health influences lack scientific support
+            - 7.83 Hz is the fundamental Schumann resonance of Earth's ionosphere cavity. It's a naturally occurring <strong>EM wave</strong> frequency, not an audible sound (human hearing starts ~20 Hz)<br>
+            - This frequency coincides with the boundary between theta and alpha human brainwaves (~8 Hz). <strong>Some studies</strong> noted correlations between Schumann fluctuations and brain activity, but <strong>no causal effect</strong> is proven<br>
+            - Links to hypnosis or enhanced consciousness are speculative. There is <strong>no scientific evidence</strong> that 7.83 Hz audio can summon UAPs or significantly affect health
           </td>
-          <td>
-            Simulates the Schumann resonance by amplitude-modulating a 100 Hz carrier with a ~7.83 Hz oscillator.
-          </td>
+          <td>Simulates the 7.83 Hz "earth resonance" by amplitude-modulating a 100 Hz audio carrier with a 7.83 Hz low-frequency oscillator.</td>
         </tr>
         <tr>
-          <td>528 Hz</td>
+          <td><strong>528 Hz</strong><br><small>("Love" frequency)</small></td>
           <td>
-            - Known as the "Love" or "Miracle" frequency[3]<br>
-            - Part of the Solfeggio scale tradition<br>
-            - Believed to heal DNA, repair cells, and emanate positive energy<br>
-            - Used in meditations and sound baths for transformation and harmony<br>
-            - Said to invite benevolent energies and higher consciousness
+            - Dubbed the <strong>"Love frequency"</strong> or "Miracle tone," part of the New Age Solfeggio scale<br>
+            - Believers claim it <strong>repairs DNA</strong>, heals cells, and emanates positive, life-changing energy<br>
+            - Used in sound healing, meditation music, and touted to invite harmony and even <strong>alien benevolence</strong>
           </td>
           <td>
-            - Simply a mid-range pitch (near C5 if you tune in A=440 Hz)<br>
-            - No peer-reviewed evidence of DNA repair or healing powers[4]<br>
-            - Physiologically behaves like any other frequency<br>
-            - Benefits likely due to general musical effects or placebo[5]<br>
-            - No special properties compared to other musical tones
+            - 528 Hz is simply a mid-range musical tone (near C5 if A=440) with <strong>no unique biological effects</strong>. No peer-reviewed research confirms DNA repair or special healing power. Mainstream science considers these claims <strong>pseudoscientific</strong><br>
+            - Physiologically, 528 Hz behaves like any other sound frequency. The calming effects people report are likely due to the <strong>placebo effect or general relaxation</strong> from music, not any intrinsic "miracle" property<br>
+            - In short, it's a pleasant tone, but <strong>no scientific validation</strong> supports it as a healing or UAP-attracting frequency
           </td>
-          <td>
-            Provides a strong mid-range tone, implemented as a pure sine wave oscillator.
-          </td>
+          <td>Plays a steady 528 Hz pure tone (sine wave oscillator) as a prominent layer in the mix.</td>
         </tr>
         <tr>
-          <td>432 Hz</td>
+          <td><strong>432 Hz</strong><br><small>(Ambient pad)</small></td>
           <td>
-            - Considered the "natural frequency" of the universe<br>
-            - Claimed to resonate with universal patterns and ancient geometry[6]<br>
-            - Believed to be more harmonious with cosmic vibrations<br>
-            - Said to reduce stress and awaken spirituality<br>
-            - Preferred by some over standard 440 Hz tuning
+            - Sometimes called the <strong>"natural frequency of the universe."</strong> Linked by occult theories to cosmic harmony and ancient sacred geometry<br>
+            - Proponents say tuning music to A=432 Hz (instead of 440 Hz standard) produces more <strong>relaxing, spiritual sound</strong>, reducing stress and aligning with the cosmos<br>
+            - Popular in certain meditation music circles and believed by some to have healing or consciousness-awakening effects
           </td>
           <td>
-            - Just an alternative musical tuning reference<br>
-            - No special physical significance[7]<br>
-            - Historically, many tuning standards have been used (415 Hz, 432 Hz, 440 Hz)<br>
-            - No proven physiological difference between 432 Hz and 440 Hz<br>
-            - Any benefits are subjective or due to musical composition
+            - 432 Hz is simply an <strong>alternate tuning reference</strong> (about 8 Hz lower than standard A=440). Historically, various tunings have been used, and 432 Hz has no proven physical or neurological advantage<br>
+            - A <strong>2019 study</strong> found music at 432 Hz <em>versus</em> 440 Hz produced only minor differences (a slight decrease in listeners' heart rate and a subjective preference for 432 Hz). This suggests it may feel calming, but there's <strong>no "magical" quality</strong> – the effect is subtle and likely subjective<br>
+            - Overall, <strong>no scientific evidence</strong> shows 432 Hz is inherently special. Any benefits are due to individual perception or the music's composition, not the number 432 itself
           </td>
-          <td>
-            Provides a warm bed of sound as an ambient pad tone.
-          </td>
+          <td>Provides a gentle 432 Hz background tone as an ambient "pad," adding warmth and depth to the audio mix.</td>
         </tr>
         <tr>
-          <td>2.5 kHz</td>
+          <td><strong>2.5 kHz</strong><br><small>(Periodic chirps)</small></td>
           <td>
-            - Used in spiritual UAP-summoning practices as an attention signal<br>
-            - Thought to cut through normal perception<br>
-            - Compared to natural calls that might attract entities<br>
-            - Believed to help broadcast intent to other realms<br>
-            - Some see it as a spiritual "alarm" or beacon
+            - Included as an attention-grabbing <strong>"call"</strong> in some UAP summoning rituals<br>
+            - Some interpret it as mimicking natural sounds (bird-like or electronic chirps) that might signal intent or curiosity to any entities<br>
+            - Considered a high-pitched beacon that "cuts through" ordinary sounds, possibly to <strong>alert or invite</strong> nearby phenomena
           </td>
           <td>
-            - Falls within peak human hearing sensitivity (2-5 kHz)<br>
-            - Simply a sound wave with ~0.4m wavelength<br>
-            - Naturally attention-grabbing due to human ear sensitivity<br>
-            - Used in audio production for clarity and presence<br>
-            - No evidence of supernatural properties
+            - 2.5 kHz lies in the range of <strong>peak human hearing sensitivity</strong> (around 2–5 kHz). This means such tones are very noticeable to human ears – hence its use for alarms or attention signals<br>
+            - Acoustically, it's a normal audible frequency with a ~0.14 m wavelength. It stands out to us but has <strong>no known special effect on the environment or electronics</strong><br>
+            - There is <strong>no evidence</strong> that 2.5 kHz tones have any supernatural or UAP-specific influence. They are simply effective at getting attention due to human biology
           </td>
-          <td>
-            Periodic short bursts every 10 seconds, creating a distinct "chirp" signal.
-          </td>
+          <td>Generates a short "chirp" pulse at ~2.5 kHz for ~0.25 s, repeating every 10 seconds to create a rhythmic beacon-like signal.</td>
         </tr>
         <tr>
-          <td>17 kHz</td>
+          <td><strong>17 kHz</strong><br><small>(Ultrasonic ping)</small></td>
           <td>
-            - Considered a "dog whistle for aliens"<br>
-            - Believed to reach realms beyond normal sound<br>
-            - Used in UAP summoning as a subtle beacon<br>
-            - Thought to transcend ordinary communication<br>
-            - Seen as a way to signal presence to other beings
+            - Referred to as a <strong>"dog whistle for aliens."</strong> Ultrasonic tone meant to be heard by <em>other beings</em> even if humans barely perceive it<br>
+            - Believed to <strong>"reach beyond" normal human realms</strong> of hearing, signaling to entities on a different sensory plane<br>
+            - In UAP summoning lore, it's a subtle beacon: a high-frequency signal intended to transcend ordinary communication and announce one's presence to any receptive extraterrestrial intelligences
           </td>
           <td>
-            - Near the upper limit of human hearing<br>
-            - Many adults cannot hear above ~16 kHz<br>
-            - Dissipates quickly in atmosphere<br>
-            - Used in pest control and teen deterrent devices<br>
-            - No evidence of exotic interaction capabilities
+            - ~17 kHz is near the upper limit of human hearing. Many adults cannot hear above ~15–16 kHz due to age-related hearing loss. Younger people might just detect it as a very high-pitch tone, while it's inaudible to others (hence the analogy to a dog whistle)<br>
+            - High-frequency sound <strong>dissipates quickly in air</strong> – it doesn't travel far before losing energy. It's commonly used in devices like pest repellents or "teen deterrent" noisemakers (which exploit the fact older adults can't hear it)<br>
+            - There is <strong>no scientific basis</strong> for 17 kHz having exotic effects. It's an ordinary ultrasonic tone: useful for niche terrestrial purposes, but unproven in any interaction with UAPs or paranormal phenomena
           </td>
-          <td>
-            Adds a near-ultrasonic tone pulsed every 3 seconds.
-          </td>
+          <td>Adds a very high-pitched ~17 kHz tone, emitted as brief ~50 ms pings every 3 seconds (largely inaudible to most humans, but present in the signal).</td>
         </tr>
         <tr>
-          <td>"Breath Layer"<br>(White Noise)</td>
+          <td><strong>"White Noise"<br>Breath Layer</strong></td>
           <td>
-            - Represents life force or spirit in practice<br>
-            - Thought to infuse signals with living essence<br>
-            - Used to create sense of conscious presence<br>
-            - Believed to attract benevolent attention<br>
-            - Helps participants feel connected through breath synchronization
+            - Meant to represent a <strong>"breathing" life force</strong> in the signal. The subtle rise-and-fall of noise is like inhalation/exhalation, giving the mix a living quality<br>
+            - Practitioners believe this infuses the audio with a <strong>conscious presence</strong> – as if the signal itself is "alive" or sentient<br>
+            - The breathing noise is also used for <strong>synchronization</strong> – participants listening might match their own breathing to it, fostering a group meditative state intended to attract positive attention
           </td>
           <td>
-            - Contains all frequencies at equal intensity<br>
-            - Amplitude modulation creates breathing effect<br>
-            - Masks sudden sounds and provides natural backdrop<br>
-            - Psychological benefits through familiar patterns<br>
-            - No special properties beyond normal acoustics
+            - <strong>White noise</strong> contains <em>all audible frequencies</em> at roughly equal intensity. It's basically a random signal, often used to mask other sounds or induce calm (many find gentle white noise soothing)<br>
+            - By <strong>amplitude-modulating</strong> the noise at a slow ~0.2 Hz rate, it creates a "wah-wah" effect reminiscent of breathing. This has a psychological calming effect (humans find rhythmic breath sounds familiar), but it's purely an acoustic technique – no special property beyond creating a relaxed atmosphere<br>
+            - Aside from comfort and masking sudden noises, this layer has <strong>no special significance</strong> to UAPs. It simply makes the overall sound feel more natural and pleasant to humans
           </td>
-          <td>
-            White noise softly modulated at a low rate to simulate subtle "breathing."
-          </td>
+          <td>Generates soft white noise and applies a slow oscillation to its volume, simulating a gentle inhale-exhale cycle in the background.</td>
         </tr>
       </tbody>
     </table>
 
-    <div class="content">
-      <h2>RF-Based "Dog Whistles" and Related Frequencies</h2>
-      <p>
-        In addition to the audio-based signals described above, certain Radio Frequency (RF) signals are rumored to act as UAP attractors, sometimes called RF "dog whistles."
-      </p>
+    <h2>Credibility of Audio-Based Claims</h2>
+    <p>
+      The audio-based "UAP whistle" remains entirely anecdotal. It's an intriguing idea inspired by New Age concepts, but there is no empirical evidence that any of these sound frequencies can summon or interact with UFOs. Sound waves dissipate quickly and can't travel long distances through air or space like radio waves can. At best, these tones might influence the mood or perception of human listeners (e.g. inducing a meditative state), but claims of affecting external phenomena or "inviting" UAPs are unproven. Experts emphasize that these notions, while creative, fall into the realm of personal belief and placebo rather than science.
+    </p>
+    <p>
+      Nonetheless, some UAP enthusiasts have experimented with playing such tones during skywatch sessions. Any reported "results" are highly subjective and could easily be coincidences or misinterpretations. No controlled study has confirmed a correlation between playing these frequencies and UAP appearances. In summary, the audio "dog whistle" is a social-media-driven idea fueled by spiritual lore, with no credible scientific backing at this time.
+    </p>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Frequency</th>
-            <th>Claimed Significance</th>
-            <th>Technical Assessment & Citations</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>1.42 GHz<br>(Hydrogen Line)</td>
-            <td>
-              - Associated with the resonance frequency of neutral hydrogen atoms<br>
-              - Speculated by some to be universally significant and potentially attractive to UAP
-            </td>
-            <td>
-              - Scientifically recognized as an important frequency for radio astronomy and SETI efforts ([Wikipedia: Hydrogen line](https://en.wikipedia.org/wiki/Hydrogen_line))<br>
-              - Currently, no empirical evidence supports its effectiveness in UAP attraction or communication
-            </td>
-          </tr>
-          <tr>
-            <td>1.6 GHz</td>
-            <td>
-              - Detected in anomalous contexts at locations like Skinwalker Ranch<br>
-              - Hypothesized by investigators to be associated with UAP presence or activity
-            </td>
-            <td>
-              - Also widely used by terrestrial systems including GPS and satellite communications, which may explain detections ([Radio Reference Forum](https://forums.radioreference.com/threads/1-6-ghz-skinwalker-tin-foil-hat.457588/))<br>
-              - Lacks definitive scientific evidence linking it specifically to UAP phenomena
-            </td>
-          </tr>
-          <tr>
-            <td>1.8 GHz+ (Response Signal)</td>
-            <td>
-              - Anecdotal claims suggest UAP might respond at higher frequencies (e.g., 1.8 GHz) when stimulated at lower frequencies like 1.6 GHz
-            </td>
-            <td>
-              - Hypothesis derived from informal and anecdotal reports from UAP research communities ([Reddit Discussion](https://www.reddit.com/r/UFOs/comments/1id5may/skywatchers_uap_dog_whistle/))<br>
-              - No peer-reviewed scientific validation; considered highly speculative
-            </td>
-          </tr>
-          <tr>
-            <td>Phi (Golden Ratio ~1.618 GHz)</td>
-            <td>
-              - Some fringe claims link the Golden Ratio frequency (Phi) to UAP phenomena<br>
-              - Alleged spiritual or esoteric significance due to mathematical harmony
-            </td>
-            <td>
-              - Scientifically, Phi has no proven physical or electromagnetic special significance beyond mathematical interest ([GoldenNumber.net](https://www.goldennumber.net/))<br>
-              - Claims linking Phi to UAP activity lack credible evidence or verification
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <h2>RF-Based Scientific Investigations</h2>
+    <p>
+      In contrast to the audio claims, there are ongoing investigations using radio frequency (RF) signals to potentially detect or even "summon" UAPs. Notably, a private research group known as Skywatcher (involving engineers and scientists, reportedly including Stanford professor Garry Nolan and others) and the team at Skinwalker Ranch have explored specific microwave frequencies. This approach has a more scientific basis: radio waves can propagate long distances and are used in communication and radar, so if UAPs are technological, RF signals might realistically interact with them.
+    </p>
+
+    <h3>Key frequencies of interest reported in these investigations include:</h3>
+
+    <h4>1.42 GHz – The Hydrogen Line</h4>
+    <p>
+      This is the famous 21 cm line emitted by neutral hydrogen atoms. It's a universal frequency astronomers observe across the galaxy. In fact, SETI researchers consider 1.42 GHz a potential channel for extraterrestrial communication. The logic is that any advanced civilization would know of hydrogen's spectral line (a fundamental constant) and might use it as a common signaling frequency. Some have speculated that broadcasting at 1.42 GHz could attract attention of UFOs or that UFOs might "listen" on this channel. Scientifically, 1.42 GHz is indeed significant in astronomy, but there's no evidence that UAPs are responding to it. So far, it's more of an informed guess (based on SETI rationale) than a proven method of contact.
+    </p>
+
+    <h4>~1.6 GHz – Anomalous Signals (Skinwalker Ranch)</h4>
+    <p>
+      Around 1.6 GHz, unexplained RF activity has been recorded during experiments at Skinwalker Ranch in Utah. For example, during a 2022 drill into the mesa on the ranch (featured on The Secret of Skinwalker Ranch TV show), the team's instruments picked up a mysterious 1.6 GHz spike coinciding with the drilling activity. In a 2024 investigation, researchers observed a persistent 1.6 GHz carrier coming from the sky over the ranch's "Triangle" area during a helicopter experiment. These anomalies led to hypotheses that 1.6 GHz might be related to UAP presence – essentially an RF "ping" or beacon in the environment. The Skywatcher team reportedly focused on 1.6 GHz as part of their own "dog whistle." According to journalist Ross Coulthart, Skywatcher used a device transmitting around 1.6 GHz and claimed UAPs often showed up "like ringing a bell" in response.
+    </p>
+    <p>
+      Technical context: 1.6 GHz is not a rare or magical frequency – it falls in a band heavily used by human technology. For instance, the GPS L1 signal is ~1.575 GHz, and other navigation, satellite, and aviation systems operate around 1.6–1.7 GHz. Radio engineers on forums have pointed out that any receiver will pick up lots of normal traffic in this range. This raises the possibility that the Skinwalker detections could be interference or reflections from mundane sources (satellites, radar, etc.). The ranch is remote, but signals can bounce around the ionosphere or come from overhead satellites. Thus, while the 1.6 GHz spikes are interesting, they are not yet proof of anything alien – further data and controls are needed to rule out conventional causes.
+    </p>
+
+    <h4>~1.8 GHz – Reported "Response" Signals</h4>
+    <p>
+      Skywatcher members have hinted that when they transmit at 1.6 GHz, they sometimes receive a response around 1.8 GHz. In other words, an uptick or signal appears at a higher frequency, as if something answered back. During one Skywatcher-related field test, after a 1.6 GHz emission ceased, new signals were allegedly detected at 1.7 and 1.8 GHz. This is anecdotal and comes from informal reports (often relayed on social media or Reddit). Interestingly, 1.7–1.8 GHz is used for some Earth-to-space communications (for example, certain satellite uplinks), which means such signals could be ordinary in origin. Investigators considered the possibility that a UAP or unknown device might be shifting the frequency (for instance, a harmonic or intermodulation effect). However, no peer-reviewed study has confirmed a "response" at 1.8 GHz to an intentional 1.6 GHz broadcast – it remains speculative and based on field anecdotes. Without controlled experimentation, it's hard to say if 1.8 GHz spikes are truly caused by UAP interaction or just coincidental RF noise.
+    </p>
+
+    <h4>1.618 GHz (Phi "Golden Ratio")</h4>
+    <p>
+      This frequency is essentially a nod to the mathematical golden ratio (~1.618). Some fringe theories tried to connect the UAP signals to this number, noting that 1.618 falls in between 1.6 and 1.63 GHz. The idea was that perhaps an advanced intelligence might use mathematically meaningful constants (like π or φ) in their signals. However, this is numerology more than science. A radio signal at 1.618 GHz is just another microwave frequency, and there is no known natural resonance or special property to that number – it's significant in math, not physics. As one discussion bluntly noted, "1.6 GHz has no relation to the Golden Ratio" beyond the coincidence of the digits. The GoldenNumber.net resource clarifies that φ is a dimensionless ratio with no inherent electromagnetic meaning. In short, the "phi frequency" connection appears to be a red herring with no evidence supporting it in UAP phenomena.
+    </p>
+
+    <h2>Credibility of RF-Based Investigations</h2>
+    <p>
+      The RF-based signals, while still unproven in eliciting UAP responses, have a relatively stronger footing in observation and science than the audio claims. The fact that instruments (like spectrum analyzers and software-defined radios) have detected anomalous RF spikes during UAP sightings or experiments lends some data to analyze. Groups like Skywatcher are approaching this systematically, treating it as an experiment – for example, testing a hypothesis that transmitting at 1.6 GHz could "call in" a phenomenon, and looking for any consistent response. Aerospace professionals and scientists are involved, indicating a more rigorous mindset (though much of their data is still private or preliminary).
+    </p>
+    <p>
+      That said, it's important to remain critical. So far, the RF "dog whistle" idea is based on correlation, not proven causation. Normal sources can produce or interfere at these frequencies, and small sample sizes (a few incidents) mean results could be flukes. Unlike established scientific phenomena, these UAP-related RF signals haven't been replicated under controlled conditions or published in peer-reviewed literature. The claims from Skywatcher are extraordinary – e.g. that every time they use their RF signal, UAPs reliably appear – which demands extraordinary evidence. So far, we have intriguing anecdotes and some intriguing recordings, but not enough to draw firm conclusions.
+    </p>
+
+    <h2>Social Media vs. Scientific Approach</h2>
+    <p>
+      In summary, audio-frequency UAP summoning is an anecdotal, grassroots idea fueled by spiritual beliefs and internet sharing, whereas the RF-frequency experiments are part of a scientific inquiry (albeit into a paranormal subject). The audio method's credibility is extremely low – it's more of a crowdsourced myth or meditation aid than anything tested. The RF method is grounded in the plausible notion that if UAP are real and technology-based, they might interact via electromagnetism (just as radar and radio have coincided with UFO reports historically). Even so, both approaches are exploratory.
+    </p>
+    <p>
+      No one has yet demonstrated a repeatable "UAP summon" via any signal. The difference lies in how they're conceived: one is essentially a "spiritual ritual" in technical clothing (tones thought to resonate with mystical energies), and the other is a scientific experiment (broadcasting in frequencies of known physical significance and measuring responses). The scientific approach yields data that can be analyzed (signal recordings, timestamps, correlations with sightings), whereas the audio approach generally yields personal anecdotes without data. It's telling that the Skywatcher team kept their efforts quiet until they had recorded evidence, whereas the audio signal went viral purely through social media excitement.
+    </p>
+
+    <h2>Conclusion and Disclaimer</h2>
+    <p>
+      Both the audio and RF "dog whistle" concepts for UAP are unproven and speculative. There is currently no scientific consensus or validation that any particular frequency – audio or radio – can attract UFOs on demand. While it's good to keep an open mind and explore unconventional ideas, one should maintain healthy skepticism. Many factors (confirmation bias, environmental interference, or plain coincidence) could explain the stories behind these signals without invoking anything extraterrestrial.
+    </p>
+    <p>
+      If you choose to experiment with UAP signaling, do so carefully and responsibly. High-volume or high-frequency audio can affect hearing or disturb wildlife, and transmitting powerful RF signals may require a license and could interfere with legitimate communications. In the Skinwalker Ranch experiments, for example, equipment anomalies and safety issues arose alongside the RF spikes – highlighting that these endeavors can carry risks or unknowns. Always follow legal regulations for radio transmissions and take precautions for personal safety.
+    </p>
+    <p>
+      Ultimately, the idea of a "UAP whistle" – be it a mystical tone or a radio beam – remains an intriguing hypothesis. It has not graduated to an accepted theory or technique. As of now, the summoning signals are more fantasy than fact. Enthusiasts may enjoy trying out the audio mix (it can be a fun exercise in sound design or a meditative experience), and researchers will continue to monitor the RF spectrum for anomalies. But until we have solid evidence, it's wise to view all such claims as unverified. The search for reliable UAP interaction methods is still very much in its infancy, and every proposed signal, whether born on Twitter or in a lab, should be met with an open yet critical mind.
+    </p>
 
     <div class="content">
       <h2>References & Attribution</h2>
@@ -329,45 +320,26 @@
 
       <h3>Research Citations</h3>
       <ol>
-        <li><a href="https://bigthink.com/health/is-the-earths-heartbeat-of-7-83-hz-influencing-human-behavior/" target="_blank">Big Think - "Is the Earth's 'heartbeat' of 7.83 Hz influencing human behavior?"</a> The waves were named after Winfried Otto Schumann, measured at 7.83 Hertz with harmonics at 14.3, 20.8, 27.3, and 33.8 Hz.</li>
+        <li><a href="https://bigthink.com/health/is-the-earths-heartbeat-of-7-83-hz-influencing-human-behavior/" target="_blank">Big Think - "Is the Earth's 'heartbeat' of 7.83 Hz influencing human behavior?"</a> Explains the Schumann Resonance (7.83 Hz) and notes that links to human biology (hypnosis, etc.) lack rigorous proof.</li>
 
-        <li><a href="https://bigthink.com/health/is-the-earths-heartbeat-of-7-83-hz-influencing-human-behavior/" target="_blank">Big Think - "Is the Earth's 'heartbeat' of 7.83 Hz influencing human behavior?"</a> Links to hypnosis, meditation, and human growth hormones lack rigorous scientific evidence.</li>
+        <li><a href="https://science.howstuffworks.com/science-vs-myth/extrasensory-perceptions/solfeggio-frequencies.htm" target="_blank">HowStuffWorks - "Solfeggio Frequencies: Healing Tones or Pseudoscience?"</a> Describes New Age claims of 528 Hz as the "Love frequency" and notes that scientific evidence for DNA repair or healing is scarce.</li>
 
-        <li><a href="https://medium.com/@dr.michael.sebastian/the-528-hz-phenomenon-c65f073a4e4f" target="_blank">Dr. Michael Sebastian - "The 528 Hz Phenomenon," Medium, Feb 2025.</a> Describes the frequency being called "the frequency of love."</li>
+        <li><a href="https://pubmed.ncbi.nlm.nih.gov/31215361/" target="_blank">Calamassi & Pomponi (2019)</a> - Explore Journal study on 432 Hz vs 440 Hz tuning – Found only minor physiological differences (432 Hz music led to slightly lower heart rate) and no broad evidence of any mystical benefits. Concludes 432 Hz has no special significance over standard tuning.</li>
 
-        <li><a href="https://medium.com/@dr.michael.sebastian/the-528-hz-phenomenon-c65f073a4e4f" target="_blank">Dr. Michael Sebastian - "The 528 Hz Phenomenon," Medium, Feb 2025.</a> Notes the lack of peer-reviewed scientific validation.</li>
+        <li><a href="https://en.wikipedia.org/wiki/Hearing_range" target="_blank">Wikipedia - "Hearing range"</a> - Human hearing spans ~20 Hz to 20 kHz, with peak sensitivity ~2–5 kHz. Frequencies like 7.83 Hz are inaudible, ~2.5 kHz is very audible, and ~17 kHz is near the upper limit (largely inaudible to many adults).</li>
 
-        <li><a href="https://medium.com/@dr.michael.sebastian/the-528-hz-phenomenon-c65f073a4e4f" target="_blank">Dr. Michael Sebastian - "The 528 Hz Phenomenon," Medium, Feb 2025.</a> Skeptics attribute benefits to placebo effect rather than inherent frequency properties.</li>
+        <li><a href="https://www.headspace.com/articles/white-noise" target="_blank">Headspace - "White Noise - Calming Sounds"</a> - Defines white noise as containing all audible frequencies at equal intensity, which supports the use of white noise for masking and relaxation (but with no mystical implications).</li>
 
-        <li><a href="https://medson.net/is-a-432-hz-a-myth/" target="_blank">MedSon - "Is 'A' 432 Hz a myth?"</a> Discusses claims about 432 Hz resonating with the universe and ancient structures.</li>
+        <li><a href="https://en.wikipedia.org/wiki/Hydrogen_line" target="_blank">Wikipedia - "Hydrogen Line"</a> - Details the 1.420 GHz hydrogen line's importance in astronomy and SETI as a theoretically universal hailing frequency. This provides context for why UAP researchers took interest in 1.42 GHz (a frequency any technology-aware species might recognize).</li>
 
-        <li><a href="https://ask.audio/articles/music-theory-432-hz-separating-fact-from-fiction" target="_blank">Ask.Audio - "Music Theory: 432 Hz - Separating Fact From Fiction."</a> Concludes 432 Hz has no special significance over other frequencies.</li>
+        <li><a href="https://www.rtl-sdr.com/1-6-ghz-signals-at-skinwalker-ranch/" target="_blank">RTL-SDR Blog - "1.6 GHz Signals at Skinwalker Ranch"</a> - Reports on the TV investigation where a 1.6 GHz signal was detected during drilling at Skinwalker Ranch. Notes that the show's scientists found it unusual. Discussion on forums suggests it could be from known sources, as 1.6 GHz is used by GPS/communications.</li>
 
-        <li><a href="https://en.wikipedia.org/wiki/Hearing_range" target="_blank">Wikipedia - "Hearing range."</a> Human hearing range is 20–20,000 Hz, with peak sensitivity between 2,000–5,000 Hz.</li>
+        <li><a href="https://ghosthuntingtheories.com/2024/06/15/beyond-skinwalker-ranch-review/" target="_blank">Ghost Hunting Theories blog - Review of Beyond Skinwalker Ranch (June 2024)</a> - Describes field tests at another ranch where signals at 1.7–1.8 GHz were detected after a 1.6 GHz transmission. Mentions that 1.6–1.8 GHz is used for earth-space communications, hinting at possible conventional origins.</li>
 
-        <li><a href="https://www.headspace.com/articles/white-noise" target="_blank">Headspace - "White Noise - Calming Sounds."</a> Describes white noise as containing all frequencies across the audible spectrum in equal measure.</li>
+        <li><a href="https://www.goldennumber.net/" target="_blank">GoldenNumber.net - "The Golden Ratio (Phi)"</a> - Provides a mathematical overview of Φ (~1.618) and emphasizes it's a pure number with no physical electromagnetic significance. Useful to debunk the idea that 1.618 GHz is inherently special in the EM spectrum.</li>
 
-        <li><a href="https://en.wikipedia.org/wiki/Hydrogen_line" target="_blank">Wikipedia - "Hydrogen Line."</a> Detailed explanation of the universal significance of the 1.42 GHz hydrogen resonance.</li>
-
-        <li><a href="https://forums.radioreference.com/threads/1-6-ghz-skinwalker-tin-foil-hat.457588/" target="_blank">RadioReference Forum - "1.6 GHz Signals at Skinwalker Ranch."</a> Discussion of terrestrial explanations for anomalous RF detections.</li>
-
-        <li><a href="https://www.goldennumber.net/" target="_blank">GoldenNumber.net - "The Golden Ratio (Phi)."</a> Mathematical overview of Phi, clarifying its significance and lack of proven electromagnetic implications.</li>
-
-        <li><a href="https://www.reddit.com/r/UFOs/comments/1id5may/skywatchers_uap_dog_whistle/" target="_blank">Reddit Discussion - "Skywatcher's UAP Dog Whistle."</a> Community-sourced speculation on UAP interaction via radio frequencies.</li>
+        <li><a href="https://www.reddit.com/r/UFOs/comments/1id5may/skywatchers_uap_dog_whistle/" target="_blank">Reddit r/UFOs discussion - "Skywatcher's UAP 'Dog Whistle'"</a> - Community speculation thread about the Skywatcher device and frequencies. While anecdotal, it captures claims that the Skywatcher team's RF "whistle" uses 1.6 GHz with a 1.8 GHz response, and that they allegedly achieved consistent results. (These claims are unverified and should be viewed with caution.)</li>
       </ol>
-    </div>
-
-    <div class="disclaimer">
-      <h2>Disclaimer</h2>
-      <p>
-        The frequencies and signals discussed here—both audio and RF-based—are experimental and speculative. This includes audio signals (such as 528 Hz, 432 Hz, and 17 kHz) and radio frequency claims (such as 1.42 GHz and 1.6 GHz). There is currently no scientifically validated evidence supporting claims of UAP attraction or interaction through these frequencies.
-      </p>
-      <p>
-        Always approach these claims critically and consider existing scientific consensus. Some frequencies discussed (like the hydrogen line at 1.42 GHz or Skinwalker Ranch's 1.6 GHz) have known terrestrial or astronomical applications that may explain reported anomalies.
-      </p>
-      <p>
-        High-frequency audio signals and electromagnetic emissions can pose health or interference risks if misused. Employ caution and appropriate technical equipment if experimenting with any signals discussed.
-      </p>
     </div>
   </div>
 
