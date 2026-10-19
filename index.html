@@ -1,507 +1,1227 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>UAP "Dog Whistle" 🛸❓🤔 from a dubious source</title>
-  <script defer data-domain="whistle.uap-facts.com" src="https://plausible.io/js/script.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 2rem;
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UAP Dog Whistle</title>
+<meta name="description" content="Six-layer Web Audio signal generator: 7.83 Hz Schumann carrier, 528 Hz, 17 kHz ping, 2.5 kHz chirps, 432 Hz pad and a breath layer.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #04030d;
+    --bg-2: #0b0722;
+    --panel: rgba(18, 14, 42, 0.72);
+    --panel-border: rgba(150, 130, 255, 0.16);
+    --plasma: #c47bff;
+    --plasma-2: #ff6ad5;
+    --text: #e6ebf5;
+    --muted: #8b95ad;
+    --accent: #7ef0c8;
+    --accent-2: #e76125;
+    --warn: #ffb547;
+    --led-off: #1f2740;
+    --font: "Roboto", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--font);
+    color: var(--text);
+    background:
+      radial-gradient(1100px 700px at 85% -10%, rgba(130, 70, 230, 0.26), transparent 60%),
+      radial-gradient(900px 600px at -10% 45%, rgba(231, 97, 37, 0.13), transparent 60%),
+      radial-gradient(800px 600px at 60% 110%, rgba(60, 170, 255, 0.16), transparent 60%),
+      radial-gradient(500px 400px at 30% 20%, rgba(255, 106, 213, 0.08), transparent 60%),
+      linear-gradient(180deg, var(--bg-2), var(--bg) 60%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+  canvas#stars { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+  main { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; padding: 32px 16px 64px; }
+
+  header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 24px; }
+  h1 { font-weight: 300; font-size: clamp(28px, 5vw, 44px); letter-spacing: 0.02em; margin: 0; }
+  h1 strong { font-weight: 700; background: linear-gradient(90deg, var(--accent), var(--plasma) 60%, var(--plasma-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .tagline { color: var(--muted); margin: 4px 0 0; max-width: 56ch; }
+  .badge { font-family: var(--mono); font-size: 12px; color: var(--muted); border: 1px solid var(--panel-border); border-radius: 999px; padding: 4px 10px; }
+
+  .panel {
+    background: var(--panel); border: 1px solid var(--panel-border); border-radius: 14px;
+    backdrop-filter: blur(8px); padding: 18px;
+  }
+
+  /* Transport */
+  .transport { display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center; margin-bottom: 16px; }
+  @media (max-width: 720px) { .transport { grid-template-columns: 1fr; } }
+  .power {
+    appearance: none; border: 0; cursor: pointer; font: inherit; font-weight: 500; font-size: 18px;
+    color: #06110d; background: var(--accent); border-radius: 12px; padding: 18px 28px; min-width: 200px;
+    box-shadow: 0 0 0 0 rgba(126, 240, 200, 0.4); transition: transform .08s ease, box-shadow .3s ease, background .2s ease;
+  }
+  .power:hover { transform: translateY(-1px); }
+  .power:active { transform: translateY(1px); }
+  .power.on { background: var(--accent-2); color: #fff; box-shadow: 0 0 36px 0 rgba(231, 97, 37, 0.35); }
+  .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px 22px; }
+  .ctl label, .ctl .lbl { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 6px; }
+  .ctl .row { display: flex; align-items: center; gap: 10px; }
+  .ctl output, .mono { font-family: var(--mono); font-size: 13px; color: var(--text); white-space: nowrap; }
+  .seg { display: inline-flex; border: 1px solid var(--panel-border); border-radius: 10px; overflow: hidden; }
+  .seg button {
+    appearance: none; border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 14px;
+    padding: 8px 14px; cursor: pointer;
+  }
+  .seg button.active { background: rgba(126, 240, 200, 0.14); color: var(--accent); }
+  input[type="range"] { width: 100%; accent-color: var(--accent); }
+  .hidden { display: none !important; }
+
+  /* Orb cursor (mouse / trackpad devices only) */
+  @media (pointer: fine) {
+    html.orb-cursor, html.orb-cursor * { cursor: none !important; }
+    #cursorOrb {
+      position: fixed; left: 0; top: 0; width: 22px; height: 22px; margin: -11px 0 0 -11px;
+      border-radius: 50%; pointer-events: none; z-index: 9999; opacity: 0; will-change: transform;
+      background: radial-gradient(circle at 40% 38%, #ffffff 0%, #e6e9ff 28%, rgba(174, 179, 236, 0.9) 58%, rgba(90, 92, 180, 0) 72%);
+      box-shadow: 0 0 10px 3px rgba(190, 200, 255, 0.55), 0 0 26px 8px rgba(130, 115, 255, 0.28);
+      transition: opacity .25s ease;
     }
-    h1 {
-      margin-bottom: 0.5rem;
-    }
-    .version {
-      margin-bottom: 1.5rem;
-      font-size: 0.95rem;
-      color: #666;
-    }
-    button {
-      font-size: 1.2rem;
-      padding: 0.5rem 1rem;
-      cursor: pointer;
-    }
-    .content {
-      max-width: 600px;
-      margin: 2rem auto;
-      text-align: left;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-      font-size: 0.9rem;  /* Slightly smaller font for dense content */
-    }
-    th {
-      background-color: #e3f2fd;  /* Light blue background */
-      color: #000;  /* Black text */
-      border: 1px solid #90caf9;  /* Light blue border */
-      padding: 0.75rem;
-      text-align: center;  /* Center align header text */
-      vertical-align: top;
-    }
-    td {
-      border: 1px solid #ccc;
-      padding: 0.75rem;
-      text-align: left;
-      vertical-align: top;
-      line-height: 1.4;  /* Better line spacing for readability */
-    }
-    td:first-child {
-      font-weight: bold;  /* Make frequency column stand out */
-      white-space: nowrap;  /* Keep frequency on one line */
-    }
-    .disclaimer {
-      background: #f9f9f9;
-      border-left: 4px solid #999;
-      padding: 1rem;
-      margin-top: 2rem;
-      font-size: 0.9rem;
-      line-height: 1.4;
-    }
-    .disclaimer h2 {
-      margin-top: 0;
-    }
-    .top-disclaimer {
-      background-color: #fee2e2;
-      border: 2px solid #ef4444;
-      border-radius: 8px;
-      padding: 1.5rem;
-      margin: 2rem auto;
-      max-width: 800px;
-      color: #991b1b;
-      line-height: 1.6;
-    }
-    .top-disclaimer h2 {
-      color: #dc2626;
-      margin-top: 0;
-      margin-bottom: 1rem;
-      font-size: 1.25rem;
-    }
-    .subtitle {
-      font-size: 1rem;
-      color: #666;
-      margin-top: 0.5rem;
-      font-style: italic;
-    }
-  </style>
+    #cursorOrb::after { content: ""; position: absolute; left: 50%; top: 50%; width: 3px; height: 3px; margin: -1.5px 0 0 -1.5px; border-radius: 50%; background: #fff; box-shadow: 0 0 4px 1px #fff; }
+  }
+  @media (pointer: coarse), (pointer: none) { #cursorOrb { display: none; } }
+
+  /* Visualisers */
+  .scope-wrap { padding: 0; overflow: hidden; margin-bottom: 16px; }
+  .viz { display: grid; grid-template-columns: 250px 1fr; }
+  .plasma-wrap {
+    position: relative; display: flex; align-items: center; justify-content: center; padding: 10px;
+    border-right: 1px solid var(--panel-border);
+    background: radial-gradient(circle at 50% 50%, rgba(140, 120, 255, 0.16), transparent 68%);
+  }
+  canvas#plasma { display: block; width: 230px; height: 230px; }
+  .spectrum-wrap { position: relative; min-width: 0; }
+  canvas#scope { display: block; width: 100%; height: 250px; }
+  @media (max-width: 720px) {
+    .viz { grid-template-columns: 1fr; }
+    .plasma-wrap { border-right: 0; border-bottom: 1px solid var(--panel-border); }
+    canvas#scope { height: 220px; }
+  }
+  .scope-status {
+    position: absolute; top: 10px; left: 12px; display: flex; gap: 14px; flex-wrap: wrap;
+    font-family: var(--mono); font-size: 12px; color: var(--muted);
+  }
+  .scope-status b { color: var(--text); font-weight: 500; }
+
+  /* Layers */
+  .layers { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin-bottom: 16px; }
+  .layer { position: relative; display: grid; gap: 10px; }
+  .layer.off { opacity: 0.55; }
+  .layer-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .layer h3 { margin: 0; font-size: 16px; font-weight: 500; }
+  .layer .spec { font-family: var(--mono); font-size: 12px; color: var(--accent); margin-top: 2px; }
+  .layer p { margin: 0; color: var(--muted); font-size: 14px; }
+  .led { width: 10px; height: 10px; border-radius: 50%; background: var(--led-off); box-shadow: 0 0 0 0 transparent; transition: background .05s, box-shadow .05s; flex: none; margin-top: 6px; }
+  .led.lit { background: var(--plasma-2); box-shadow: 0 0 12px 2px rgba(255, 106, 213, 0.7); }
+  .led.steady { background: rgba(126, 240, 200, 0.5); }
+  .switch { position: relative; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+  .switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .switch .track { width: 38px; height: 22px; border-radius: 999px; background: #27304a; position: relative; transition: background .2s; }
+  .switch .track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #c7cfe3; transition: transform .2s; }
+  .switch input:checked + .track { background: var(--accent); }
+  .switch input:checked + .track::after { transform: translateX(16px); background: #06110d; }
+  .switch input:focus-visible + .track { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .level { display: grid; grid-template-columns: 1fr 48px; gap: 10px; align-items: center; }
+
+  /* Perspectives table */
+  .fb { margin-bottom: 16px; }
+  .fb h2, .rf h2, .refs h2 { margin: 0 0 4px; font-size: 20px; font-weight: 500; }
+  .fb .intro, .rf .intro, .refs .intro { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+  .fb-row { display: grid; grid-template-columns: 160px 1fr 1.2fr; gap: 14px 18px; padding: 16px 0; border-top: 1px solid var(--panel-border); }
+  .fb-row:last-child { padding-bottom: 0; }
+  .fb-tone h3 { margin: 0; font-size: 15px; font-weight: 500; }
+  .fb-tone .spec { font-family: var(--mono); font-size: 12px; color: var(--accent); margin-top: 2px; }
+  .fb-col { font-size: 13.5px; color: var(--text); }
+  .fb-col .tag { display: inline-block; font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; padding: 2px 8px; border-radius: 999px; margin-bottom: 8px; }
+  .fb-col.belief .tag { color: var(--warn); background: rgba(255, 181, 71, 0.12); }
+  .fb-col.fact .tag { color: var(--accent); background: rgba(126, 240, 200, 0.12); }
+  .fb-col ul { margin: 0; padding-left: 16px; }
+  .fb-col li { margin: 3px 0; color: #c7cfe3; }
+  .fb-head { display: none; }
+  @media (min-width: 821px) {
+    .fb-head { display: grid; grid-template-columns: 160px 1fr 1.2fr; gap: 18px; font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); padding-bottom: 8px; }
+    .fb-col .tag { display: none; }
+  }
+  @media (max-width: 820px) { .fb-row { grid-template-columns: 1fr; gap: 12px; } }
+
+  /* RF section */
+  .rf { margin-bottom: 16px; }
+  .rf-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-top: 6px; }
+  .rf-card { border: 1px solid var(--panel-border); border-radius: 12px; padding: 14px 16px; background: rgba(0,0,0,0.2); }
+  .rf-card h3 { margin: 0 0 6px; font-size: 15px; font-weight: 500; }
+  .rf-card .kicker { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 6px; }
+  .rf-card p, .rf p { margin: 0 0 8px; font-size: 13.5px; color: #c7cfe3; }
+  .rf-card ul { margin: 0; padding-left: 16px; font-size: 13.5px; color: #c7cfe3; }
+  .rf-card li { margin: 3px 0; }
+  .rf-compare { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 13.5px; }
+  .rf-compare th, .rf-compare td { text-align: left; padding: 8px 10px; border-top: 1px solid var(--panel-border); vertical-align: top; color: #c7cfe3; }
+  .rf-compare th { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); border-top: 0; }
+  .rf-compare td:first-child { color: var(--text); font-weight: 500; white-space: nowrap; }
+  .ep3 { margin: 12px 0 0 !important; padding-top: 10px; border-top: 1px dashed var(--panel-border); color: var(--muted) !important; font-style: italic; }
+  .ep3 .verdict { font-style: normal; }
+  .callout { border-left: 3px solid var(--warn); background: rgba(255, 181, 71, 0.08); border-radius: 10px; padding: 10px 14px; font-size: 13.5px; color: #e6d7b8; margin-top: 12px; }
+  .verdict { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; padding: 2px 8px; border-radius: 999px; margin-right: 6px; }
+  .verdict.ok { color: var(--accent); background: rgba(126, 240, 200, 0.12); }
+  .verdict.partial { color: var(--warn); background: rgba(255, 181, 71, 0.12); }
+  .verdict.no { color: #ff8a8a; background: rgba(210, 20, 25, 0.16); }
+
+  /* References */
+  .refs { margin-bottom: 16px; }
+  .refs h3 { margin: 14px 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 500; }
+  .refs ul { margin: 0; padding-left: 18px; font-size: 13.5px; }
+  .refs li { margin: 4px 0; color: #c7cfe3; }
+  .refs a, .rf a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(126, 240, 200, 0.35); }
+  .refs a:hover, .rf a:hover { border-bottom-color: var(--accent); }
+  .refs .note { color: var(--muted); font-size: 12.5px; }
+
+  /* Export + notes */
+  .export { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-bottom: 16px; }
+  .export select, .btn {
+    font: inherit; font-size: 14px; color: var(--text); background: rgba(255,255,255,0.04);
+    border: 1px solid var(--panel-border); border-radius: 10px; padding: 9px 14px; cursor: pointer;
+  }
+  .btn:hover { border-color: rgba(126, 240, 200, 0.5); }
+  .btn:disabled { opacity: 0.5; cursor: progress; }
+  .notes { color: var(--muted); font-size: 13px; }
+  .notes ul { margin: 8px 0 0; padding-left: 18px; }
+  .notes li { margin: 4px 0; }
+  .recipe { font-family: var(--mono); font-size: 12.5px; color: var(--muted); white-space: pre-wrap; margin: 10px 0 0; padding: 12px; background: rgba(0,0,0,0.25); border-radius: 10px; border-left: 3px solid var(--accent-2); }
+</style>
 </head>
 <body>
-  <div class="top-disclaimer">
-    <h2>⚠️ Important Notice</h2>
-    <p>
-      The frequencies used in this experiment were suggested by an unverified source on X (formerly Twitter). 
-      This project was created as a programming exercise to demonstrate AI-assisted code generation and carries 
-      no scientific validity. It has no connection to the "Skywatcher dog whistle" or similar devices reportedly 
-      used at locations like Skinwalker Ranch, which are believed to rely on radio frequency (RF) signals—not audio frequencies.
-    </p>
-    <p>
-      For detailed information about the RF-based approach reportedly associated with Skywatcher and Skinwalker Ranch, please refer to the section below titled <strong>"RF-Based 'Dog Whistles' and Related Frequencies."</strong>
-    </p>
-    <p>
-      The author makes no claims about the effectiveness or purpose of these frequencies, and this should be treated purely as an experimental demonstration.
-    </p>
-  </div>
-
-  <h1>UAP Dog Whistle 🛸❓🤔</h1>
-  <div class="subtitle">(from a dubious source)</div>
-  <div class="version">Version 3.0</div>
-
-  <button id="toggleBtn">Start</button>
-
-  <div class="content">
-    <h1>UAP "Dog Whistle" Signals: Audio Frequency Claims vs RF Signal Investigations</h1>
-
-    <div class="top-disclaimer">
-      <h2>⚠️ Important Notice</h2>
-      <p>
-        The audio frequencies discussed here originated from an unverified social media claim and have no scientific validation. This project was created as a programming experiment to demonstrate AI-assisted code generation, not as a proven UAP (Unidentified Aerial Phenomena) summoning tool. It is not connected to the "Skywatcher dog whistle" devices reportedly used at places like Skinwalker Ranch, which rely on radio frequency signals (RF) – not audio tones. For information on those RF-based approaches, see RF-Based Scientific Investigations below. The author makes no claims about the effectiveness of any of these signals; they should be treated as speculative and anecdotal.
-      </p>
+<canvas id="stars" aria-hidden="true"></canvas>
+<div id="cursorOrb" aria-hidden="true"></div>
+<main>
+  <header>
+    <div>
+      <h1><strong>UAP</strong> Dog Whistle</h1>
+      <p class="tagline">Six-layer signal generator built straight from the recipe. Pulse it or play it straight. Low volume, because volume does not matter in this context.</p>
     </div>
+    <span class="badge" id="srBadge">Web Audio · idle</span>
+  </header>
 
-    <h2>Audio-Based Claims from Social Media</h2>
-    <p>
-      Background: In April 2025, a Twitter user @JasonWilde108 (on X) posted a guide to creating a so-called "dog whistle" for summoning UAPs (UFOs) using audio frequencies. The post, which spread through Reddit and social media, described a layered audio signal combining several tones:
-    </p>
+  <section class="panel transport" aria-label="Transport">
+    <button class="power" id="power" type="button">Start signal</button>
+    <div class="controls">
+      <div class="ctl">
+        <span class="lbl">Mode</span>
+        <div class="seg" role="group" aria-label="Playback mode">
+          <button type="button" id="modeStraight" class="active">Straight</button>
+          <button type="button" id="modePulse">Pulse</button>
+        </div>
+      </div>
+      <div class="ctl" id="pulseCtl">
+        <label for="pulseRate">Pulse period</label>
+        <div class="row">
+          <input type="range" id="pulseRate" min="0.25" max="4" step="0.05" value="1">
+          <output id="pulseOut" for="pulseRate">1.00 s</output>
+        </div>
+      </div>
+      <div class="ctl">
+        <label for="volume">Master volume</label>
+        <div class="row">
+          <input type="range" id="volume" min="0" max="1" step="0.01" value="0.2">
+          <output id="volumeOut" for="volume">-14 dB</output>
+        </div>
+      </div>
+    </div>
+  </section>
 
-    <ul>
-      <li>7.83 Hz (Schumann Resonance)</li>
-      <li>528 Hz (the "Love" frequency)</li>
-      <li>432 Hz (an ambient pad tone)</li>
-      <li>2.5 kHz (periodic chirps)</li>
-      <li>17 kHz (ultrasonic "ping")</li>
-      <li>A white noise "breath" layer</li>
-    </ul>
+  <section class="panel scope-wrap" aria-label="Visualisers">
+    <div class="viz">
+      <div class="plasma-wrap">
+        <canvas id="plasma" width="230" height="230" aria-label="Luminous orb reacting to the signal"></canvas>
+      </div>
+      <div class="spectrum-wrap">
+        <canvas id="scope" width="1080" height="250"></canvas>
+        <div class="scope-status">
+          <span>elapsed <b id="stElapsed">00:00</b></span>
+          <span>next chirp <b id="stChirp">–</b></span>
+          <span>next ping <b id="stPing">–</b></span>
+          <span>mode <b id="stMode">straight</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
 
-    <p>
-      These frequencies were chosen for their esoteric or spiritual reputations – ranging from Earth's "heartbeat" to healing tones – in the belief that together they might attract UAPs. Below is a comparison of the claimed spiritual significance versus the scientific perspective on each audio component. (Keep in mind: no scientific evidence currently supports the idea that audible sound can summon UAPs.)
-    </p>
+  <section class="layers" id="layers" aria-label="Signal layers"></section>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Frequency / Layer</th>
-          <th>Spiritual/Esoteric Perspective</th>
-          <th>Scientific/Technical Perspective</th>
-          <th>Implementation Details</th>
-        </tr>
-      </thead>
+  <section class="panel fb" aria-label="Perspectives per tone">
+    <h2>Tone by tone: esoteric and scientific</h2>
+    <p class="intro">For each layer: what proponents say about the frequency next to what is measurable and documented. The esoteric column reports claims as they are made and does not endorse them.</p>
+    <div class="fb-head"><span>Frequency / layer</span><span>Spiritual / esoteric perspective</span><span>Scientific / technical perspective</span></div>
+    <div class="fb-row">
+      <div class="fb-tone"><h3>Schumann carrier</h3><div class="spec">7.83 Hz AM on 100 Hz</div></div>
+      <div class="fb-col belief"><span class="tag">Spiritual / esoteric</span><ul><li>Called the “heartbeat of the Earth”; tuning into it is said to ground, calm and heal the body.</li><li>A widely repeated story says NASA fits spacecraft with Schumann generators to keep astronauts well. No documentation of this exists.</li><li>In contact communities the frequency is treated as a shared carrier that non-human intelligence (NHI) recognises or uses.</li></ul></div>
+      <div class="fb-col fact"><span class="tag">Scientific / technical</span><ul><li>Schumann resonances are real: electromagnetic standing waves in the cavity between Earth and the ionosphere, excited by global lightning. Predicted by Winfried Otto Schumann in 1952 and first measured clearly in 1960.</li><li>The fundamental sits near 7.83 Hz and drifts by a few tenths of a hertz with the time of day and season. Higher modes appear near 14, 20, 26 and 33 Hz.</li><li>They are electromagnetic, not acoustic. A loudspeaker makes air pressure waves, so this layer reproduces the number, not the phenomenon.</li><li>7.83 Hz is below human hearing (roughly 20 Hz to 20 kHz). Here it is heard as a 100 Hz tone throbbing 7.83 times a second.</li><li>7.83 Hz lies at the theta/alpha boundary of EEG rhythms. Evidence that rhythmic sound at this rate shifts brain state is small-sample and mixed.</li><li>The recipe’s wording is backwards. An audio engineer in the r/aliens thread pointed out that the 100 Hz tone is the carrier and 7.83 Hz is the modulator, and that modulating a tone at 7.83 Hz “does not a Schumann resonance make”.</li></ul></div>
+    </div>
+    <div class="fb-row">
+      <div class="fb-tone"><h3>528 Hz harmonic</h3><div class="spec">528 Hz sine</div></div>
+      <div class="fb-col belief"><span class="tag">Spiritual / esoteric</span><ul><li>The “love frequency” or “miracle tone”, said to repair DNA, raise consciousness and restore spiritual order.</li><li>Claimed to be the original pitch of Gregorian chant, suppressed by the Church or by later tuning standards.</li><li>Included in contact protocols as a signal of benevolent intent.</li></ul></div>
+      <div class="fb-col fact"><span class="tag">Scientific / technical</span><ul><li>528 Hz is roughly a C, about 15 cents above the equal-tempered C5 of 523.25 Hz at A = 440 Hz. It corresponds to a tuning of A ≈ 444 Hz.</li><li>The “Solfeggio frequencies” (396, 417, 528, 639, 741, 852 Hz) were introduced in 1999 by Joseph Puleo and Leonard Horowitz, derived from a numerological reading of the Book of Numbers. There is no record of them in medieval chant or in Guido of Arezzo’s solfège.</li><li>The DNA-repair claim has no peer-reviewed support. A handful of very small studies (under a dozen participants, or cell cultures) report minor stress or hormone changes; none have been replicated at scale.</li><li>Any sustained pure tone can feel soothing. Controlled comparisons rarely find a difference specific to 528 Hz.</li></ul></div>
+    </div>
+    <div class="fb-row">
+      <div class="fb-tone"><h3>17 kHz ultrasonic ping</h3><div class="spec">17,000 Hz · 60 ms · every 3 s</div></div>
+      <div class="fb-col belief"><span class="tag">Spiritual / esoteric</span><ul><li>Suspected to be detectable by NHI technology, acting as a handshake or beacon. The original recipe itself labels this “suspected”.</li><li>Thought to be “subtle” enough to be noticed by advanced sensors while remaining unnoticed by people.</li></ul></div>
+      <div class="fb-col fact"><span class="tag">Scientific / technical</span><ul><li>17 kHz is near the top of human hearing. Sensitivity to high frequencies falls with age (presbycusis), so most adults past their late twenties cannot hear it while many teenagers can.</li><li>That age gap is exploited commercially: the “Mosquito” teen deterrent (2005) emits about 17.4 kHz, and the “Teen Buzz” ringtone used the same idea.</li><li>Dogs hear up to roughly 45 kHz and cats to roughly 64 kHz, so 17 kHz is plainly audible to pets and can irritate them.</li><li>Inaudible near-ultrasound beacons (around 18 to 20 kHz) are a real, documented technique in advertising for cross-device tracking. They are detected by phone microphones, not by anything exotic.</li><li>Small phone and laptop speakers roll off sharply in this range. The layer is present in the file but may barely leave the speaker.</li></ul></div>
+    </div>
+    <div class="fb-row">
+      <div class="fb-tone"><h3>Organic 2.5 kHz chirps</h3><div class="spec">≈2,300–2,900 Hz sweeps · every 10 s</div></div>
+      <div class="fb-col belief"><span class="tag">Spiritual / esoteric</span><ul><li>Modelled on sounds reported during orb and craft sightings, the chirps are meant as a creature-like “call” that invites a response.</li><li>The unique signature is said to let NHI distinguish an intentional contact attempt from background noise.</li></ul></div>
+      <div class="fb-col fact"><span class="tag">Scientific / technical</span><ul><li>Human hearing is most sensitive between roughly 2 and 5 kHz, partly because the ear canal resonates near 2.5 to 3 kHz. Smoke alarms, birdsong and infant cries all sit in this band.</li><li>Frequency-sweeping “chirps” are common in animal communication (songbirds, frogs, bats) and in engineering. Radar and sonar use chirp pulses because a sweep is easy to pick out of noise.</li><li>A repeating, randomised chirp cluster does give the signal a recognisable acoustic signature to a human or an ordinary recorder.</li><li>No study has shown that creature-like sounds attract or signal anything beyond nearby animals and people.</li></ul></div>
+    </div>
+    <div class="fb-row">
+      <div class="fb-tone"><h3>432 Hz ambient pad</h3><div class="spec">432 Hz · 4 voices · filter drift</div></div>
+      <div class="fb-col belief"><span class="tag">Spiritual / esoteric</span><ul><li>The “natural” or “cosmic” tuning, said to resonate with the universe, the Earth and the human body.</li><li>Said to be Pythagorean or ancient Egyptian, to heal water and to produce more harmonious cymatics patterns than 440 Hz.</li><li>Here it is used as a masking pad so the whole signal feels smooth and intentional rather than clinical.</li></ul></div>
+      <div class="fb-col fact"><span class="tag">Scientific / technical</span><ul><li>Concert pitch has never been fixed by nature. Historical pitches ranged from about A = 415 Hz (Baroque) to above 450 Hz. France set 435 Hz in 1859, a London conference chose 440 Hz in 1939 and ISO 16 formalised it in 1955 (reaffirmed 1975).</li><li>Giuseppe Verdi did campaign for A = 432 Hz, and Italy adopted it by decree in 1884. The claim that Nazis or the Rockefeller Foundation forced 440 Hz on the world is a myth.</li><li>432 versus 440 Hz is about 32 cents apart, under a third of a semitone. Most listeners cannot tell the two apart without a direct comparison.</li><li>Small trials (around 30 participants) comparing music at 432 and 440 Hz report slight drops in heart rate or anxiety. Effects are small, unblinded in places and not replicated.</li><li>432 is not a harmonic of 7.83 Hz (7.83 × 55 ≈ 430.7), despite frequent claims that it is.</li></ul></div>
+    </div>
+    <div class="fb-row">
+      <div class="fb-tone"><h3>Breath layer</h3><div class="spec">white noise · bandpass · 0.22 Hz</div></div>
+      <div class="fb-col belief"><span class="tag">Spiritual / esoteric</span><ul><li>Shaping noise to breathe is believed to give the signal presence or life force, so it reads as a living thing rather than a machine.</li><li>Some practitioners see it as carrying the sender’s intention, which in contact frameworks matters more than loudness.</li></ul></div>
+      <div class="fb-col fact"><span class="tag">Scientific / technical</span><ul><li>White noise has equal power at every frequency. Pink noise has equal power per octave and sounds more natural. The filtered, swelling noise here sits between the two.</li><li>Sound masking with broadband noise is well established in offices and clinics, and several studies find that steady noise helps some people fall asleep.</li><li>The 0.22 Hz swell is about 13 breaths per minute, a normal resting rate. Paced-breathing apps use the same trick; slow breathing near 6 per minute has measurable effects on heart-rate variability.</li><li>Listeners tend to synchronise their breathing to a slow, breath-shaped sound, which is why it feels “alive”.</li></ul></div>
+    </div>
+    <div class="fb-row">
+      <div class="fb-tone"><h3>Pulse or straight, low volume</h3><div class="spec">playback advice</div></div>
+      <div class="fb-col belief"><span class="tag">Spiritual / esoteric</span><ul><li>In CE5 and similar contact practice, contact is held to be consciousness-based. The sound is a focus for intention, so its physical level does not matter.</li><li>Pulsing is said to make the signal read as deliberate communication rather than ambient sound.</li></ul></div>
+      <div class="fb-col fact"><span class="tag">Scientific / technical</span><ul><li>Any receiver, biological or electronic, detects sound pressure. At low volume the 100 Hz and 17 kHz layers drop below threshold first, because speakers and ears are least sensitive there.</li><li>Pulsing a signal does make it more noticeable to human listeners and easier to pick out of noise, the same reason beacons and alarms pulse.</li><li>There is no scientific evidence that any sound, pulsed or continuous, summons anomalous phenomena.</li></ul></div>
+    </div>
+  </section>
+
+  <section class="panel rf" aria-label="RF-based investigations">
+    <h2>Audio versus RF: what the sky watchers actually use</h2>
+    <p class="intro">The audio recipe above circulated on X in April 2025. The groups it borrows the “dog whistle” name from are not playing sound at all. Their claims involve radio-frequency (RF) emissions, which is a different physical phenomenon.</p>
+
+    <table class="rf-compare">
+      <thead><tr><th></th><th>This page (audio)</th><th>Skywatcher / Skinwalker claims (RF)</th></tr></thead>
       <tbody>
-        <tr>
-          <td><strong>7.83 Hz</strong><br><small>("Schumann Resonance")</small></td>
-          <td>
-            - Often cited as Earth's <strong>"Schumann Resonance"</strong>, thought to be Earth's "heartbeat" and a grounding frequency<br>
-            - Believed to promote well-being and resonate with the planet's energy, used in meditation and even UAP summoning rituals<br>
-            - Claimed to open spiritual channels for contact with other beings
-          </td>
-          <td>
-            - 7.83 Hz is the fundamental Schumann resonance of Earth's ionosphere cavity. It's a naturally occurring <strong>EM wave</strong> frequency, not an audible sound (human hearing starts ~20 Hz)<br>
-            - This frequency coincides with the boundary between theta and alpha human brainwaves (~8 Hz). <strong>Some studies</strong> noted correlations between Schumann fluctuations and brain activity, but <strong>no causal effect</strong> is proven<br>
-            - Links to hypnosis or enhanced consciousness are speculative. There is <strong>no scientific evidence</strong> that 7.83 Hz audio can summon UAPs or significantly affect health
-          </td>
-          <td>Simulates the 7.83 Hz "earth resonance" by amplitude-modulating a 100 Hz audio carrier with a 7.83 Hz low-frequency oscillator.</td>
-        </tr>
-        <tr>
-          <td><strong>528 Hz</strong><br><small>("Love" frequency)</small></td>
-          <td>
-            - Dubbed the <strong>"Love frequency"</strong> or "Miracle tone," part of the New Age Solfeggio scale<br>
-            - Believers claim it <strong>repairs DNA</strong>, heals cells, and emanates positive, life-changing energy<br>
-            - Used in sound healing, meditation music, and touted to invite harmony and even <strong>alien benevolence</strong>
-          </td>
-          <td>
-            - 528 Hz is simply a mid-range musical tone (near C5 if A=440) with <strong>no unique biological effects</strong>. No peer-reviewed research confirms DNA repair or special healing power. Mainstream science considers these claims <strong>pseudoscientific</strong><br>
-            - Physiologically, 528 Hz behaves like any other sound frequency. The calming effects people report are likely due to the <strong>placebo effect or general relaxation</strong> from music, not any intrinsic "miracle" property<br>
-            - In short, it's a pleasant tone, but <strong>no scientific validation</strong> supports it as a healing or UAP-attracting frequency
-          </td>
-          <td>Plays a steady 528 Hz pure tone (sine wave oscillator) as a prominent layer in the mix.</td>
-        </tr>
-        <tr>
-          <td><strong>432 Hz</strong><br><small>(Ambient pad)</small></td>
-          <td>
-            - Sometimes called the <strong>"natural frequency of the universe."</strong> Linked by occult theories to cosmic harmony and ancient sacred geometry<br>
-            - Proponents say tuning music to A=432 Hz (instead of 440 Hz standard) produces more <strong>relaxing, spiritual sound</strong>, reducing stress and aligning with the cosmos<br>
-            - Popular in certain meditation music circles and believed by some to have healing or consciousness-awakening effects
-          </td>
-          <td>
-            - 432 Hz is simply an <strong>alternate tuning reference</strong> (about 8 Hz lower than standard A=440). Historically, various tunings have been used, and 432 Hz has no proven physical or neurological advantage<br>
-            - A <strong>2019 study</strong> found music at 432 Hz <em>versus</em> 440 Hz produced only minor differences (a slight decrease in listeners' heart rate and a subjective preference for 432 Hz). This suggests it may feel calming, but there's <strong>no "magical" quality</strong> – the effect is subtle and likely subjective<br>
-            - Overall, <strong>no scientific evidence</strong> shows 432 Hz is inherently special. Any benefits are due to individual perception or the music's composition, not the number 432 itself
-          </td>
-          <td>Provides a gentle 432 Hz background tone as an ambient "pad," adding warmth and depth to the audio mix.</td>
-        </tr>
-        <tr>
-          <td><strong>2.5 kHz</strong><br><small>(Periodic chirps)</small></td>
-          <td>
-            - Included as an attention-grabbing <strong>"call"</strong> in some UAP summoning rituals<br>
-            - Some interpret it as mimicking natural sounds (bird-like or electronic chirps) that might signal intent or curiosity to any entities<br>
-            - Considered a high-pitched beacon that "cuts through" ordinary sounds, possibly to <strong>alert or invite</strong> nearby phenomena
-          </td>
-          <td>
-            - 2.5 kHz lies in the range of <strong>peak human hearing sensitivity</strong> (around 2–5 kHz). This means such tones are very noticeable to human ears – hence its use for alarms or attention signals<br>
-            - Acoustically, it's a normal audible frequency with a ~0.14 m wavelength. It stands out to us but has <strong>no known special effect on the environment or electronics</strong><br>
-            - There is <strong>no evidence</strong> that 2.5 kHz tones have any supernatural or UAP-specific influence. They are simply effective at getting attention due to human biology
-          </td>
-          <td>Generates a short "chirp" pulse at ~2.5 kHz for ~0.25 s, repeating every 10 seconds to create a rhythmic beacon-like signal.</td>
-        </tr>
-        <tr>
-          <td><strong>17 kHz</strong><br><small>(Ultrasonic ping)</small></td>
-          <td>
-            - Referred to as a <strong>"dog whistle for aliens."</strong> Ultrasonic tone meant to be heard by <em>other beings</em> even if humans barely perceive it<br>
-            - Believed to <strong>"reach beyond" normal human realms</strong> of hearing, signaling to entities on a different sensory plane<br>
-            - In UAP summoning lore, it's a subtle beacon: a high-frequency signal intended to transcend ordinary communication and announce one's presence to any receptive extraterrestrial intelligences
-          </td>
-          <td>
-            - ~17 kHz is near the upper limit of human hearing. Many adults cannot hear above ~15–16 kHz due to age-related hearing loss. Younger people might just detect it as a very high-pitch tone, while it's inaudible to others (hence the analogy to a dog whistle)<br>
-            - High-frequency sound <strong>dissipates quickly in air</strong> – it doesn't travel far before losing energy. It's commonly used in devices like pest repellents or "teen deterrent" noisemakers (which exploit the fact older adults can't hear it)<br>
-            - There is <strong>no scientific basis</strong> for 17 kHz having exotic effects. It's an ordinary ultrasonic tone: useful for niche terrestrial purposes, but unproven in any interaction with UAPs or paranormal phenomena
-          </td>
-          <td>Adds a very high-pitched ~17 kHz tone, emitted as brief ~50 ms pings every 3 seconds (largely inaudible to most humans, but present in the signal).</td>
-        </tr>
-        <tr>
-          <td><strong>"White Noise"<br>Breath Layer</strong></td>
-          <td>
-            - Meant to represent a <strong>"breathing" life force</strong> in the signal. The subtle rise-and-fall of noise is like inhalation/exhalation, giving the mix a living quality<br>
-            - Practitioners believe this infuses the audio with a <strong>conscious presence</strong> – as if the signal itself is "alive" or sentient<br>
-            - The breathing noise is also used for <strong>synchronization</strong> – participants listening might match their own breathing to it, fostering a group meditative state intended to attract positive attention
-          </td>
-          <td>
-            - <strong>White noise</strong> contains <em>all audible frequencies</em> at roughly equal intensity. It's basically a random signal, often used to mask other sounds or induce calm (many find gentle white noise soothing)<br>
-            - By <strong>amplitude-modulating</strong> the noise at a slow ~0.2 Hz rate, it creates a "wah-wah" effect reminiscent of breathing. This has a psychological calming effect (humans find rhythmic breath sounds familiar), but it's purely an acoustic technique – no special property beyond creating a relaxed atmosphere<br>
-            - Aside from comfort and masking sudden noises, this layer has <strong>no special significance</strong> to UAPs. It simply makes the overall sound feel more natural and pleasant to humans
-          </td>
-          <td>Generates soft white noise and applies a slow oscillation to its volume, simulating a gentle inhale-exhale cycle in the background.</td>
-        </tr>
+        <tr><td>What it is</td><td>Pressure waves in air, 100 Hz to 17 kHz</td><td>Electromagnetic waves, reportedly in the L-band around 1.6 GHz</td></tr>
+        <tr><td>Reach</td><td>Tens of metres outdoors; drops to nothing within a few hundred metres</td><td>Line of sight to the horizon and beyond; satellites use this band to reach orbit</td></tr>
+        <tr><td>How it is produced</td><td>Web Audio oscillators into a speaker</td><td>Transmitters, amplifiers and antennas, often vehicle-mounted</td></tr>
+        <tr><td>Who can detect it</td><td>Ears, microphones, pets</td><td>Any radio receiver tuned to the band, including GPS and satellite-phone hardware</td></tr>
+        <tr><td>Legal status</td><td>Unregulated apart from noise rules</td><td>Transmitting at 1.6 GHz needs a licence almost everywhere; the band is shared with GNSS and satellite services</td></tr>
+        <tr><td>Evidence it summons anything</td><td>None</td><td>None published; claims rest on the groups’ own statements and TV footage</td></tr>
       </tbody>
     </table>
 
-    <h2>Credibility of Audio-Based Claims</h2>
-    <p>
-      The audio-based "UAP whistle" remains entirely anecdotal. It's an intriguing idea inspired by New Age concepts, but there is no empirical evidence that any of these sound frequencies can summon or interact with UFOs. Sound waves dissipate quickly and can't travel long distances through air or space like radio waves can. At best, these tones might influence the mood or perception of human listeners (e.g. inducing a meditative state), but claims of affecting external phenomena or "inviting" UAPs are unproven. Experts emphasize that these notions, while creative, fall into the realm of personal belief and placebo rather than science.
-    </p>
-    <p>
-      Nonetheless, some UAP enthusiasts have experimented with playing such tones during skywatch sessions. Any reported "results" are highly subjective and could easily be coincidences or misinterpretations. No controlled study has confirmed a correlation between playing these frequencies and UAP appearances. In summary, the audio "dog whistle" is a social-media-driven idea fueled by spiritual lore, with no credible scientific backing at this time.
-    </p>
-
-    <h2>RF-Based Scientific Investigations</h2>
-    <p>
-      In contrast to the audio claims, there are ongoing investigations using radio frequency (RF) signals to potentially detect or even "summon" UAPs. Notably, a private research group known as Skywatcher (involving engineers and scientists, reportedly including Stanford professor Garry Nolan and others) and the team at Skinwalker Ranch have explored specific microwave frequencies. This approach has a more scientific basis: radio waves can propagate long distances and are used in communication and radar, so if UAPs are technological, RF signals might realistically interact with them.
-    </p>
-
-    <h3>Key frequencies of interest reported in these investigations include:</h3>
-
-    <h4>1.42 GHz – The Hydrogen Line</h4>
-    <p>
-      This is the famous 21 cm line emitted by neutral hydrogen atoms. It's a universal frequency astronomers observe across the galaxy. In fact, SETI researchers consider 1.42 GHz a potential channel for extraterrestrial communication. The logic is that any advanced civilization would know of hydrogen's spectral line (a fundamental constant) and might use it as a common signaling frequency. Some have speculated that broadcasting at 1.42 GHz could attract attention of UFOs or that UFOs might "listen" on this channel. Scientifically, 1.42 GHz is indeed significant in astronomy, but there's no evidence that UAPs are responding to it. So far, it's more of an informed guess (based on SETI rationale) than a proven method of contact.
-    </p>
-
-    <h4>~1.6 GHz – Anomalous Signals (Skinwalker Ranch)</h4>
-    <p>
-      Around 1.6 GHz, unexplained RF activity has been recorded during experiments at Skinwalker Ranch in Utah. For example, during a 2022 drill into the mesa on the ranch (featured on The Secret of Skinwalker Ranch TV show), the team's instruments picked up a mysterious 1.6 GHz spike coinciding with the drilling activity. In a 2024 investigation, researchers observed a persistent 1.6 GHz carrier coming from the sky over the ranch's "Triangle" area during a helicopter experiment. These anomalies led to hypotheses that 1.6 GHz might be related to UAP presence – essentially an RF "ping" or beacon in the environment. The Skywatcher team reportedly focused on 1.6 GHz as part of their own "dog whistle." According to journalist Ross Coulthart, Skywatcher used a device transmitting around 1.6 GHz and claimed UAPs often showed up "like ringing a bell" in response.
-    </p>
-    <p>
-      Technical context: 1.6 GHz is not a rare or magical frequency – it falls in a band heavily used by human technology. For instance, the GPS L1 signal is ~1.575 GHz, and other navigation, satellite, and aviation systems operate around 1.6–1.7 GHz. Radio engineers on forums have pointed out that any receiver will pick up lots of normal traffic in this range. This raises the possibility that the Skinwalker detections could be interference or reflections from mundane sources (satellites, radar, etc.). The ranch is remote, but signals can bounce around the ionosphere or come from overhead satellites. Thus, while the 1.6 GHz spikes are interesting, they are not yet proof of anything alien – further data and controls are needed to rule out conventional causes.
-    </p>
-
-    <h4>~1.8 GHz – Reported "Response" Signals</h4>
-    <p>
-      Skywatcher members have hinted that when they transmit at 1.6 GHz, they sometimes receive a response around 1.8 GHz. In other words, an uptick or signal appears at a higher frequency, as if something answered back. During one Skywatcher-related field test, after a 1.6 GHz emission ceased, new signals were allegedly detected at 1.7 and 1.8 GHz. This is anecdotal and comes from informal reports (often relayed on social media or Reddit). Interestingly, 1.7–1.8 GHz is used for some Earth-to-space communications (for example, certain satellite uplinks), which means such signals could be ordinary in origin. Investigators considered the possibility that a UAP or unknown device might be shifting the frequency (for instance, a harmonic or intermodulation effect). However, no peer-reviewed study has confirmed a "response" at 1.8 GHz to an intentional 1.6 GHz broadcast – it remains speculative and based on field anecdotes. Without controlled experimentation, it's hard to say if 1.8 GHz spikes are truly caused by UAP interaction or just coincidental RF noise.
-    </p>
-
-    <h4>1.618 GHz (Phi "Golden Ratio")</h4>
-    <p>
-      This frequency is essentially a nod to the mathematical golden ratio (~1.618). Some fringe theories tried to connect the UAP signals to this number, noting that 1.618 falls in between 1.6 and 1.63 GHz. The idea was that perhaps an advanced intelligence might use mathematically meaningful constants (like π or φ) in their signals. However, this is numerology more than science. A radio signal at 1.618 GHz is just another microwave frequency, and there is no known natural resonance or special property to that number – it's significant in math, not physics. As one discussion bluntly noted, "1.6 GHz has no relation to the Golden Ratio" beyond the coincidence of the digits. The GoldenNumber.net resource clarifies that φ is a dimensionless ratio with no inherent electromagnetic meaning. In short, the "phi frequency" connection appears to be a red herring with no evidence supporting it in UAP phenomena.
-    </p>
-
-    <h2>Credibility of RF-Based Investigations</h2>
-    <p>
-      The RF-based signals, while still unproven in eliciting UAP responses, have a relatively stronger footing in observation and science than the audio claims. The fact that instruments (like spectrum analyzers and software-defined radios) have detected anomalous RF spikes during UAP sightings or experiments lends some data to analyze. Groups like Skywatcher are approaching this systematically, treating it as an experiment – for example, testing a hypothesis that transmitting at 1.6 GHz could "call in" a phenomenon, and looking for any consistent response. Aerospace professionals and scientists are involved, indicating a more rigorous mindset (though much of their data is still private or preliminary).
-    </p>
-    <p>
-      That said, it's important to remain critical. So far, the RF "dog whistle" idea is based on correlation, not proven causation. Normal sources can produce or interfere at these frequencies, and small sample sizes (a few incidents) mean results could be flukes. Unlike established scientific phenomena, these UAP-related RF signals haven't been replicated under controlled conditions or published in peer-reviewed literature. The claims from Skywatcher are extraordinary – e.g. that every time they use their RF signal, UAPs reliably appear – which demands extraordinary evidence. So far, we have intriguing anecdotes and some intriguing recordings, but not enough to draw firm conclusions.
-    </p>
-
-    <h2>Social Media vs. Scientific Approach</h2>
-    <p>
-      In summary, audio-frequency UAP summoning is an anecdotal, grassroots idea fueled by spiritual beliefs and internet sharing, whereas the RF-frequency experiments are part of a scientific inquiry (albeit into a paranormal subject). The audio method's credibility is extremely low – it's more of a crowdsourced myth or meditation aid than anything tested. The RF method is grounded in the plausible notion that if UAP are real and technology-based, they might interact via electromagnetism (just as radar and radio have coincided with UFO reports historically). Even so, both approaches are exploratory.
-    </p>
-    <p>
-      No one has yet demonstrated a repeatable "UAP summon" via any signal. The difference lies in how they're conceived: one is essentially a "spiritual ritual" in technical clothing (tones thought to resonate with mystical energies), and the other is a scientific experiment (broadcasting in frequencies of known physical significance and measuring responses). The scientific approach yields data that can be analyzed (signal recordings, timestamps, correlations with sightings), whereas the audio approach generally yields personal anecdotes without data. It's telling that the Skywatcher team kept their efforts quiet until they had recorded evidence, whereas the audio signal went viral purely through social media excitement.
-    </p>
-
-    <h2>Conclusion and Disclaimer</h2>
-    <p>
-      Both the audio and RF "dog whistle" concepts for UAP are unproven and speculative. There is currently no scientific consensus or validation that any particular frequency – audio or radio – can attract UFOs on demand. While it's good to keep an open mind and explore unconventional ideas, one should maintain healthy skepticism. Many factors (confirmation bias, environmental interference, or plain coincidence) could explain the stories behind these signals without invoking anything extraterrestrial.
-    </p>
-    <p>
-      If you choose to experiment with UAP signaling, do so carefully and responsibly. High-volume or high-frequency audio can affect hearing or disturb wildlife, and transmitting powerful RF signals may require a license and could interfere with legitimate communications. In the Skinwalker Ranch experiments, for example, equipment anomalies and safety issues arose alongside the RF spikes – highlighting that these endeavors can carry risks or unknowns. Always follow legal regulations for radio transmissions and take precautions for personal safety.
-    </p>
-    <p>
-      Ultimately, the idea of a "UAP whistle" – be it a mystical tone or a radio beam – remains an intriguing hypothesis. It has not graduated to an accepted theory or technique. As of now, the summoning signals are more fantasy than fact. Enthusiasts may enjoy trying out the audio mix (it can be a fun exercise in sound design or a meditative experience), and researchers will continue to monitor the RF spectrum for anomalies. But until we have solid evidence, it's wise to view all such claims as unverified. The search for reliable UAP interaction methods is still very much in its infancy, and every proposed signal, whether born on Twitter or in a lab, should be met with an open yet critical mind.
-    </p>
-
-    <div class="content">
-      <h2>References & Attribution</h2>
-      <p>This website was inspired by and adapted from the following sources:</p>
-      
-      <h3>Technical Implementation</h3>
-      <ul>
-        <li>Original sound generation code: <a href="https://codepen.io/ionut-stoica-the-bold/pen/MYWNQLO" target="_blank">CodePen by Ionut Stoica</a></li>
-        <li>Signal specifications: <a href="https://x.com/jasonwilde108/status/1910816547070685522" target="_blank">Original Tweet by @jasonwilde108</a></li>
-        <li>Discussion threads:
-          <ul>
-            <li><a href="https://www.reddit.com/r/aliens/comments/1jyf331/dog_whistle_instructions/" target="_blank">r/aliens discussion</a></li>
-            <li><a href="https://www.reddit.com/r/UFOs/comments/1jyfkox/dog_whistle_instructions/" target="_blank">r/UFOs discussion</a></li>
-          </ul>
-        </li>
-      </ul>
-
-      <h3>Research Citations</h3>
-      <ol>
-        <li><a href="https://bigthink.com/health/is-the-earths-heartbeat-of-7-83-hz-influencing-human-behavior/" target="_blank">Big Think - "Is the Earth's 'heartbeat' of 7.83 Hz influencing human behavior?"</a> Explains the Schumann Resonance (7.83 Hz) and notes that links to human biology (hypnosis, etc.) lack rigorous proof.</li>
-
-        <li><a href="https://science.howstuffworks.com/science-vs-myth/extrasensory-perceptions/solfeggio-frequencies.htm" target="_blank">HowStuffWorks - "Solfeggio Frequencies: Healing Tones or Pseudoscience?"</a> Describes New Age claims of 528 Hz as the "Love frequency" and notes that scientific evidence for DNA repair or healing is scarce.</li>
-
-        <li><a href="https://pubmed.ncbi.nlm.nih.gov/31215361/" target="_blank">Calamassi & Pomponi (2019)</a> - Explore Journal study on 432 Hz vs 440 Hz tuning – Found only minor physiological differences (432 Hz music led to slightly lower heart rate) and no broad evidence of any mystical benefits. Concludes 432 Hz has no special significance over standard tuning.</li>
-
-        <li><a href="https://en.wikipedia.org/wiki/Hearing_range" target="_blank">Wikipedia - "Hearing range"</a> - Human hearing spans ~20 Hz to 20 kHz, with peak sensitivity ~2–5 kHz. Frequencies like 7.83 Hz are inaudible, ~2.5 kHz is very audible, and ~17 kHz is near the upper limit (largely inaudible to many adults).</li>
-
-        <li><a href="https://www.headspace.com/articles/white-noise" target="_blank">Headspace - "White Noise - Calming Sounds"</a> - Defines white noise as containing all audible frequencies at equal intensity, which supports the use of white noise for masking and relaxation (but with no mystical implications).</li>
-
-        <li><a href="https://en.wikipedia.org/wiki/Hydrogen_line" target="_blank">Wikipedia - "Hydrogen Line"</a> - Details the 1.420 GHz hydrogen line's importance in astronomy and SETI as a theoretically universal hailing frequency. This provides context for why UAP researchers took interest in 1.42 GHz (a frequency any technology-aware species might recognize).</li>
-
-        <li><a href="https://www.rtl-sdr.com/1-6-ghz-signals-at-skinwalker-ranch/" target="_blank">RTL-SDR Blog - "1.6 GHz Signals at Skinwalker Ranch"</a> - Reports on the TV investigation where a 1.6 GHz signal was detected during drilling at Skinwalker Ranch. Notes that the show's scientists found it unusual. Discussion on forums suggests it could be from known sources, as 1.6 GHz is used by GPS/communications.</li>
-
-        <li><a href="https://ghosthuntingtheories.com/2024/06/15/beyond-skinwalker-ranch-review/" target="_blank">Ghost Hunting Theories blog - Review of Beyond Skinwalker Ranch (June 2024)</a> - Describes field tests at another ranch where signals at 1.7–1.8 GHz were detected after a 1.6 GHz transmission. Mentions that 1.6–1.8 GHz is used for earth-space communications, hinting at possible conventional origins.</li>
-
-        <li><a href="https://www.goldennumber.net/" target="_blank">GoldenNumber.net - "The Golden Ratio (Phi)"</a> - Provides a mathematical overview of Φ (~1.618) and emphasizes it's a pure number with no physical electromagnetic significance. Useful to debunk the idea that 1.618 GHz is inherently special in the EM spectrum.</li>
-
-        <li><a href="https://www.reddit.com/r/UFOs/comments/1id5may/skywatchers_uap_dog_whistle/" target="_blank">Reddit r/UFOs discussion - "Skywatcher's UAP 'Dog Whistle'"</a> - Community speculation thread about the Skywatcher device and frequencies. While anecdotal, it captures claims that the Skywatcher team's RF "whistle" uses 1.6 GHz with a 1.8 GHz response, and that they allegedly achieved consistent results. (These claims are unverified and should be viewed with caution.)</li>
-      </ol>
+    <div class="rf-grid">
+      <div class="rf-card">
+        <div class="kicker">Skywatcher</div>
+        <h3>An “electro-mechanical dog whistle”</h3>
+        <p>Skywatcher is a private group founded by Jake Barber, a former US Air Force airman and federal contractor who says he flew helicopter recoveries of non-human craft. In April 2025 NewsNation reported the group “summons” objects through electronic signals at a private site called “The Range”, using what journalist Ross Coulthart described as an “electro-mechanical dog whistle”, and that the group claims it works 100 % of the time. Skywatcher’s own site calls its two methods “machine calling” (electromechanical signaling) and “psionic calling” (neuromeditative interaction).</p>
+        <ul>
+          <li><span class="verdict ok">checks out</span>Garry Nolan, a Stanford immunology professor, is named on Skywatcher’s media page as part of its field work and, per NewsNation, reviews Barber’s medical records.</li>
+          <li><span class="verdict partial">partly</span>Skywatcher says “electromechanical signaling” but has not published a frequency, a waveform or any data. The 1.6 to 1.8 GHz figures come from community recollection of interviews, not from Skywatcher.</li>
+          <li><span class="verdict no">unverified</span>The 100 % success claim and the promised video and data releases have not been independently verified.</li>
+        </ul>
+        <p class="ep3"><span class="verdict partial">episode 3</span>Skywatcher Part I and Part II landed in spring 2025, and Part II signed off promising a Part III deep dive into psionics. As of October 2026 it has not appeared, making Episode 3 the one object Skywatcher has reliably failed to summon.</p>
+      </div>
+      <div class="rf-card">
+        <div class="kicker">Skinwalker Ranch</div>
+        <h3>The 1.6 GHz signal</h3>
+        <p>On the History Channel series <em>The Secret of Skinwalker Ranch</em>, the team repeatedly reports an unexplained signal near 1.6 GHz on a software-defined radio, and in later seasons transmits test signals at 1.6 GHz and 1.2 GHz across the property to see what comes back. Fans and the r/UFOs thread treat 1.6 GHz as the best candidate for a UAP “dog whistle”.</p>
+        <ul>
+          <li><span class="verdict ok">checks out</span>The show does centre on 1.6 GHz, and the team has both detected and deliberately transmitted in that band on camera.</li>
+          <li><span class="verdict partial">mundane fit</span>1.6 GHz is one of the busiest bands in the sky: GPS L1 at 1.575 GHz, GLONASS L1 at about 1.602 GHz, and Iridium satellite phones at 1.616 to 1.626 GHz. A GPS World column (May 2023) suggested the ranch’s drone failures were consistent with GNSS jamming near that frequency.</li>
+          <li><span class="verdict no">no replication</span>No measurements, logs or methodology have been published outside the programme.</li>
+        </ul>
+      </div>
+      <div class="rf-card">
+        <div class="kicker">r/UFOs thread</div>
+        <h3>The buggy and the coil</h3>
+        <p>A January 2025 r/UFOs post by a self-described communications specialist noticed a Polaris military buggy in Skywatcher’s Part I video carrying a cylindrical device wrapped in a loose black coil, and asked whether it was the RF “dog whistle”. The thread never settled it. Suggestions ranged from a telescoping antenna mast with a hydraulic hose coiled round it, to a travelling-wave-tube amplifier, to a vehicle-mounted counter-drone system from the Australian firm AVT. Commenters also recalled Lue Elizondo mentioning 1.2 and 1.6 GHz, and a theory that craft receive at 1.6 to 1.7 GHz and reply near 1.8 GHz.</p>
+        <ul>
+          <li><span class="verdict partial">open</span>The equipment is unidentified. Nothing in the thread confirms it transmits at all.</li>
+          <li><span class="verdict ok">good advice</span>One commenter warned that 1.6 GHz is a protected navigation band and that nobody should emit there without a licence. That is correct.</li>
+        </ul>
+      </div>
     </div>
-  </div>
 
-  <script>
-    // We'll store references to each oscillator, gain node, intervals, and the AudioContext here
-    let audioCtx;
-    let isPlaying = false;
+    <p class="intro" style="margin-top:14px">Other RF figures that circulate alongside 1.6 GHz: the 1.42 GHz hydrogen line, the natural emission frequency of neutral hydrogen that radio astronomers and SETI treat as a universal marker; 1.618 GHz, chosen only because the number resembles the golden ratio; and a “response” band near 1.8 GHz. None has a published measurement behind it in this context.</p>
+    <div class="callout">Do not try to build the RF version. Transmitting around 1.6 GHz can jam GPS and GLONASS receivers in aircraft, vehicles and phones nearby, and is illegal without a licence in the US, UK and EU. The audio page here is legal, harmless to equipment, and equally unsupported by evidence.</div>
+  </section>
 
-    // Our oscillators
-    let baseOscillator;     // 100 Hz oscillator modulated at 7.83 Hz
-    let modOscillator;      // 7.83 Hz modulator
-    let harmonic528;        // 528 Hz oscillator
-    let ambient432;         // 432 Hz oscillator
-    let noiseSource;        // White noise for "breath" layer
-    let noiseGain;          // Gain for breath layer
-    let breathLFO;          // LFO for shaping breath layer
+  <section class="panel refs" aria-label="References and attribution">
+    <h2>References &amp; attribution</h2>
+    <p class="intro">This page was inspired by and adapted from the following sources.</p>
+    <h3>Technical implementation</h3>
+    <ul>
+      <li>Original sound generation code: <a href="https://codepen.io/ionut-stoica-the-bold/pen/MYWNQLO" target="_blank" rel="noopener">CodePen “UAP Dog Whistle Generator” by Ionut Stoica</a></li>
+      <li>Earlier build of this project: <a href="https://github.com/karubits/uap-dog-whistle" target="_blank" rel="noopener">karubits/uap-dog-whistle on GitHub</a></li>
+    </ul>
+    <h3>Signal specifications</h3>
+    <ul>
+      <li>Original recipe: <a href="https://x.com/JasonWilde108/status/1910816547070685522" target="_blank" rel="noopener">post by @jasonwilde108 on X, April 2025</a></li>
+      <li>Video credited by the CodePen: <a href="https://www.youtube.com/watch?v=Gbk63d_yb3k" target="_blank" rel="noopener">TalesOnTheGo on YouTube</a></li>
+    </ul>
+    <h3>Discussion threads</h3>
+    <ul>
+      <li><a href="https://www.reddit.com/r/UFOs/comments/1id5may/skywatchers_uap_dog_whistle/" target="_blank" rel="noopener">r/UFOs: “Skywatcher’s UAP ‘Dog Whistle’”</a> by u/tcom2222, January 2025</li>
+      <li><a href="https://www.reddit.com/r/aliens/comments/1jyf331/dog_whistle_instructions/" target="_blank" rel="noopener">r/aliens: “Dog Whistle instructions”</a> by u/ministeringinlove, April 2025. The thread where the CodePen generator was first shared, with an audio engineer’s critique of the recipe.</li>
+      <li><a href="https://www.reddit.com/r/UFOs/comments/1jyfkox/dog_whistle_instructions/" target="_blank" rel="noopener">r/UFOs: “Dog Whistle instructions”</a>, the cross-post of the same recipe, April 2025</li>
+    </ul>
+    <h3>RF investigations</h3>
+    <ul>
+      <li><a href="https://www.newsnationnow.com/space/ufo/summoned-ufos-video-ross-coulthart/" target="_blank" rel="noopener">NewsNation, 7 April 2025: “Skywatcher video of ‘summoned’ UFOs coming soon”</a></li>
+      <li><a href="https://www.newsnationnow.com/space/ufo/hfr-uap-recovery-video-egg-shaped-object-exclusive/" target="_blank" rel="noopener">NewsNation, 27 January 2025: “Whistleblower reveals UAP retrieval program; object caught on video”</a></li>
+      <li><a href="https://skywatcher.ai/media" target="_blank" rel="noopener">Skywatcher media page</a> (team and “machine calling” / “psionic calling” descriptions)</li>
+      <li><a href="https://www.gpsworld.com/spooky-uavs/" target="_blank" rel="noopener">GPS World, May 2023: “Spooky UAVs”</a> by Tony Murfin, on the 1.6 GHz signal and GNSS interference at Skinwalker Ranch</li>
+      <li><a href="https://www.rtl-sdr.com/1-6-ghz-signals-at-skinwalker-ranch/" target="_blank" rel="noopener">RTL-SDR.com: “1.6 GHz signals at Skinwalker Ranch”</a>, a radio hobbyist’s look at the show’s spectrum captures</li>
+      <li><a href="https://en.wikipedia.org/wiki/Hydrogen_line" target="_blank" rel="noopener">Wikipedia: Hydrogen line (1.42 GHz)</a></li>
+    </ul>
+    <h3>Background on the frequencies</h3>
+    <ul>
+      <li>Schumann resonances: W. O. Schumann (1952); Balser &amp; Wagner, <em>Nature</em> (1960)</li>
+      <li>Solfeggio frequencies: Puleo &amp; Horowitz, <em>Healing Codes for the Biological Apocalypse</em> (1999)</li>
+      <li>Concert pitch: ISO 16:1975, <em>Acoustics — Standard tuning frequency</em></li>
+      <li>Age-related high-frequency hearing loss and the “Mosquito” device: Compound Security Systems (2005); <a href="https://en.wikipedia.org/wiki/Hearing_range" target="_blank" rel="noopener">Wikipedia: Hearing range</a></li>
+      <li>432 Hz versus 440 Hz trial: Calamassi &amp; Pomponi, <em>Explore</em> (2019), <a href="https://pubmed.ncbi.nlm.nih.gov/31215361/" target="_blank" rel="noopener">PubMed 31215361</a></li>
+    </ul>
+  </section>
 
-    // Intervals
-    let chirpInterval;
-    let ultrasonicInterval;
+  <section class="panel export" aria-label="Export">
+    <span class="lbl mono" style="color:var(--muted)">Export WAV</span>
+    <select id="exportLen" aria-label="Export length">
+      <option value="60">1 minute</option>
+      <option value="180" selected>3 minutes</option>
+      <option value="600">10 minutes</option>
+    </select>
+    <button class="btn" id="exportBtn" type="button">Render &amp; download</button>
+    <span class="mono" id="exportStatus" style="color:var(--muted)">48 kHz · 16-bit · stereo · uses current layer mix and mode</span>
+  </section>
 
-    // For the 2.5 kHz chirps
-    const chirpDuration = 0.25; // 250 ms chirp
-    const chirpFrequency = 2500;
-    const chirpIntervalTime = 10000; // 10 seconds in ms
+  <section class="panel notes">
+    <strong style="color:var(--text)">Notes</strong>
+    <ul>
+      <li>Each layer has its own on/off switch and level. Levels and mode are remembered in this browser.</li>
+      <li>The 17 kHz ping is inaudible to most adults but can be irritating to children and pets. The compressor on the master bus keeps peaks tame, but start quiet anyway.</li>
+      <li>7.83 Hz itself is below hearing range. It is applied as amplitude modulation on the 100 Hz base tone, so what you hear is a 100 Hz tone throbbing 7.83 times per second.</li>
+      <li>Phone speakers cannot reproduce 100 Hz or 17 kHz well. Use headphones or a decent speaker if you want all layers present.</li>
+    </ul>
+    <pre class="recipe">What's in this signal:
 
-    function createNoiseBuffer(context) {
-      // create a 2-second buffer of white noise
-      const bufferSize = context.sampleRate * 2;
-      const buffer = context.createBuffer(1, bufferSize, context.sampleRate);
-      const output = buffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        output[i] = Math.random() * 2 - 1; // white noise
+7.83 Hz carrier (via modulated 100 Hz base tone - Schumann resonance)
+528 Hz harmonic (spiritual frequency)
+17 kHz ultrasonic ping (subtle, NHI tech-detectable - suspected)
+Organic 2.5 kHz chirps (every 10 sec, like creature calls giving it a unique signature)
+432 Hz ambient pad (smooth masking layer)
+Breath layer (white noise shaped to feel "alive")
+
+Pulse it or play it straight .... low volume because volume does not matter in this context.</pre>
+  </section>
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  // ---------- Config ----------
+  const PING_INTERVAL = 3;      // seconds between 17 kHz pings
+  const CHIRP_INTERVAL = 10;    // seconds between chirp clusters
+  const PULSE_DUTY = 0.5;
+  const EXPORT_SR = 48000;
+  const STORAGE_KEY = 'uap-dog-whistle-v1';
+
+  const LAYERS = [
+    { id: 'schumann', name: 'Schumann carrier', spec: '7.83 Hz AM on 100 Hz sine', level: 0.5, steady: true,
+      desc: 'A 100 Hz base tone, amplitude-modulated at 7.83 Hz so the sub-audio Schumann rate rides on something a speaker can reproduce.' },
+    { id: 'h528', name: '528 Hz harmonic', spec: '528 Hz sine · slow tremolo', level: 0.25, steady: true,
+      desc: 'The “spiritual frequency” as a clean sine with a gentle 0.3 Hz tremolo so it breathes against the pad.' },
+    { id: 'ping17k', name: '17 kHz ultrasonic ping', spec: '17,000 Hz · 60 ms · every 3 s', level: 0.3, steady: false,
+      desc: 'A short, soft ping near the top of human hearing. Subtle by design; most adults will not hear it at all.' },
+    { id: 'chirp', name: 'Organic 2.5 kHz chirps', spec: '≈2,300–2,900 Hz sweeps · every 10 s', level: 0.35, steady: false,
+      desc: 'Clusters of three to five randomised upward chirps around 2.5 kHz, like a small creature calling. No two clusters are the same.' },
+    { id: 'pad432', name: '432 Hz ambient pad', spec: '432 Hz · 4 detuned voices · LP filter sweep', level: 0.4, steady: true,
+      desc: 'Four slightly detuned voices plus a 216 Hz sub, low-passed with a slow filter drift. The smooth masking layer.' },
+    { id: 'breath', name: 'Breath layer', spec: 'white noise · bandpass · 0.22 Hz breathing', level: 0.3, steady: true,
+      desc: 'White noise through a wandering bandpass filter, swelling and fading at roughly 13 breaths per minute.' },
+  ];
+
+  // ---------- State ----------
+  const state = {
+    running: false,
+    mode: 'straight',
+    pulsePeriod: 1.0,
+    volume: 0.2,
+    layers: Object.fromEntries(LAYERS.map(l => [l.id, { on: true, level: l.level }])),
+  };
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+    if (saved && typeof saved === 'object') {
+      if (saved.mode === 'pulse' || saved.mode === 'straight') state.mode = saved.mode;
+      if (Number.isFinite(saved.pulsePeriod)) state.pulsePeriod = saved.pulsePeriod;
+      if (Number.isFinite(saved.volume)) state.volume = saved.volume;
+      for (const l of LAYERS) {
+        const s = saved.layers && saved.layers[l.id];
+        if (s) { state.layers[l.id].on = !!s.on; if (Number.isFinite(s.level)) state.layers[l.id].level = s.level; }
       }
-      return buffer;
+    }
+  } catch (_) { /* storage unavailable */ }
+  function persist() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ mode: state.mode, pulsePeriod: state.pulsePeriod, volume: state.volume, layers: state.layers })); } catch (_) {}
+  }
+
+  // ---------- Audio graph (shared by live + offline) ----------
+  function osc(ctx, type, freq) { const o = ctx.createOscillator(); o.type = type; o.frequency.value = freq; return o; }
+  function noiseBuffer(ctx) {
+    const len = ctx.sampleRate * 2;
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    return buf;
+  }
+
+  function buildGraph(ctx, masterLevel) {
+    const t0 = ctx.currentTime;
+    const master = ctx.createGain(); master.gain.value = masterLevel;
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -18; comp.knee.value = 12; comp.ratio.value = 6; comp.attack.value = 0.005; comp.release.value = 0.2;
+    const pulse = ctx.createGain(); pulse.gain.value = 1;
+    pulse.connect(comp).connect(master);
+
+    const layers = {};
+    const nodes = [];
+    const mk = id => {
+      const g = ctx.createGain();
+      const s = state.layers[id];
+      g.gain.value = s.on ? s.level : 0;
+      g.connect(pulse);
+      layers[id] = g;
+      return g;
+    };
+
+    // 1. Schumann carrier: 100 Hz sine, AM at 7.83 Hz (depth 100 %)
+    {
+      const g = mk('schumann');
+      const base = osc(ctx, 'sine', 100);
+      const am = ctx.createGain(); am.gain.value = 0.5;
+      const lfo = osc(ctx, 'sine', 7.83);
+      const depth = ctx.createGain(); depth.gain.value = 0.5;
+      lfo.connect(depth).connect(am.gain);
+      base.connect(am).connect(g);
+      nodes.push(base, lfo);
     }
 
-    function startAudio() {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-      // ===== Schumann-like modulated tone (7.83 Hz amplitude mod of 100 Hz) =====
-      baseOscillator = audioCtx.createOscillator();
-      baseOscillator.frequency.value = 100;
-
-      let baseGain = audioCtx.createGain();
-      baseGain.gain.value = 0; // we'll modulate this gain
-
-      modOscillator = audioCtx.createOscillator();
-      modOscillator.frequency.value = 7.83;
-
-      let modGain = audioCtx.createGain();
-      modGain.gain.value = 0.5; // amplitude modulation depth
-      modOscillator.connect(modGain);
-      modGain.connect(baseGain.gain);
-
-      baseOscillator.connect(baseGain).connect(audioCtx.destination);
-
-      // ===== 528 Hz Harmonic =====
-      harmonic528 = audioCtx.createOscillator();
-      harmonic528.frequency.value = 528;
-      let harm528Gain = audioCtx.createGain();
-      harm528Gain.gain.value = 0.2; // set volume to taste
-      harmonic528.connect(harm528Gain).connect(audioCtx.destination);
-
-      // ===== 17 kHz Ultrasonic Ping (short bursts) =====
-      // We'll create an interval that generates a ~0.05s pulse every 3 seconds
-      ultrasonicInterval = setInterval(() => {
-        const pingOsc = audioCtx.createOscillator();
-        pingOsc.frequency.value = 17000;
-        const pingGain = audioCtx.createGain();
-        pingGain.gain.value = 0.2; // volume for the ultrasonic ping
-        pingOsc.connect(pingGain).connect(audioCtx.destination);
-
-        // Start and stop
-        pingOsc.start();
-        pingOsc.stop(audioCtx.currentTime + 0.05); 
-      }, 3000); // pulse every 3 seconds
-
-      // ===== 432 Hz Ambient Pad =====
-      ambient432 = audioCtx.createOscillator();
-      ambient432.frequency.value = 432;
-      let ambientGain = audioCtx.createGain();
-      ambientGain.gain.value = 0.2;
-      ambient432.connect(ambientGain).connect(audioCtx.destination);
-
-      // ===== "Breath" Layer (White Noise with subtle LFO) =====
-      noiseSource = audioCtx.createBufferSource();
-      noiseSource.buffer = createNoiseBuffer(audioCtx);
-      noiseSource.loop = true;
-      noiseGain = audioCtx.createGain();
-      noiseGain.gain.value = 0.05; // base level for the noise
-
-      breathLFO = audioCtx.createOscillator();
-      breathLFO.frequency.value = 0.2; // very slow
-      let breathLFOTarget = audioCtx.createGain();
-      breathLFOTarget.gain.value = 0.02; // how much the LFO varies amplitude
-      breathLFO.connect(breathLFOTarget);
-      breathLFOTarget.connect(noiseGain.gain);
-
-      noiseSource.connect(noiseGain).connect(audioCtx.destination);
-
-      // Start everything
-      baseOscillator.start();
-      modOscillator.start();
-      harmonic528.start();
-      ambient432.start();
-      noiseSource.start();
-      breathLFO.start();
-
-      // Schedule 2.5 kHz chirps every 10 seconds
-      chirpInterval = setInterval(() => {
-        const chirpOsc = audioCtx.createOscillator();
-        chirpOsc.frequency.value = chirpFrequency;
-        const chirpGain = audioCtx.createGain();
-        chirpGain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        // fade out quickly after chirpDuration
-        chirpGain.gain.linearRampToValueAtTime(
-          0,
-          audioCtx.currentTime + chirpDuration
-        );
-        chirpOsc.connect(chirpGain).connect(audioCtx.destination);
-        chirpOsc.start();
-        chirpOsc.stop(audioCtx.currentTime + chirpDuration);
-      }, chirpIntervalTime);
+    // 2. 528 Hz harmonic with slow tremolo
+    {
+      const g = mk('h528');
+      const o = osc(ctx, 'sine', 528);
+      const trem = ctx.createGain(); trem.gain.value = 0.85;
+      const lfo = osc(ctx, 'sine', 0.3);
+      const depth = ctx.createGain(); depth.gain.value = 0.15;
+      lfo.connect(depth).connect(trem.gain);
+      o.connect(trem).connect(g);
+      nodes.push(o, lfo);
     }
 
-    function stopAudio() {
-      // Stop continuous oscillators
-      if (baseOscillator) baseOscillator.stop();
-      if (modOscillator) modOscillator.stop();
-      if (harmonic528) harmonic528.stop();
-      if (ambient432) ambient432.stop();
-      if (noiseSource) noiseSource.stop();
-      if (breathLFO) breathLFO.stop();
-
-      // Clear intervals for pulsed tones
-      clearInterval(chirpInterval);
-      clearInterval(ultrasonicInterval);
-
-      // Close audio context
-      audioCtx.close();
-      audioCtx = null;
-
-      // Nullify references
-      baseOscillator = null;
-      modOscillator = null;
-      harmonic528 = null;
-      ambient432 = null;
-      noiseSource = null;
-      breathLFO = null;
+    // 3. 17 kHz ping (envelope scheduled externally)
+    const pingEnv = ctx.createGain(); pingEnv.gain.value = 0;
+    {
+      const g = mk('ping17k');
+      const o = osc(ctx, 'sine', 17000);
+      o.connect(pingEnv).connect(g);
+      nodes.push(o);
     }
 
-    document.getElementById("toggleBtn").addEventListener("click", () => {
-      if (!isPlaying) {
-        startAudio();
-        document.getElementById("toggleBtn").textContent = "Stop";
+    // 4. Organic chirps (frequency + envelope scheduled externally)
+    const chirpOsc = osc(ctx, 'sine', 2500);
+    const chirpEnv = ctx.createGain(); chirpEnv.gain.value = 0;
+    {
+      const g = mk('chirp');
+      const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2500; bp.Q.value = 1.2;
+      const vib = osc(ctx, 'sine', 11);
+      const vibDepth = ctx.createGain(); vibDepth.gain.value = 18;
+      vib.connect(vibDepth).connect(chirpOsc.frequency);
+      chirpOsc.connect(chirpEnv).connect(bp).connect(g);
+      nodes.push(chirpOsc, vib);
+    }
+
+    // 5. 432 Hz pad: detuned voices + sub, low-pass with slow drift, slow tremolo
+    {
+      const g = mk('pad432');
+      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 900; lp.Q.value = 0.6;
+      const voices = [
+        [432, 'sine', 0, -0.45], [432, 'triangle', 7, 0.45], [432, 'sine', -6, 0.1], [216, 'sine', 0, 0],
+      ];
+      for (const [f, type, cents, pan] of voices) {
+        const o = osc(ctx, type, f); o.detune.value = cents;
+        const vg = ctx.createGain(); vg.gain.value = type === 'triangle' ? 0.14 : 0.22;
+        const p = ctx.createStereoPanner(); p.pan.value = pan;
+        o.connect(vg).connect(p).connect(lp);
+        nodes.push(o);
+      }
+      const flfo = osc(ctx, 'sine', 0.08);
+      const fdepth = ctx.createGain(); fdepth.gain.value = 350;
+      flfo.connect(fdepth).connect(lp.frequency);
+      const trem = ctx.createGain(); trem.gain.value = 0.9;
+      const tlfo = osc(ctx, 'sine', 0.05);
+      const tdepth = ctx.createGain(); tdepth.gain.value = 0.1;
+      tlfo.connect(tdepth).connect(trem.gain);
+      lp.connect(trem).connect(g);
+      nodes.push(flfo, tlfo);
+    }
+
+    // 6. Breath: looping white noise, wandering bandpass, breathing envelope
+    {
+      const g = mk('breath');
+      const src = ctx.createBufferSource(); src.buffer = noiseBuffer(ctx); src.loop = true;
+      const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 750; bp.Q.value = 0.7;
+      const env = ctx.createGain(); env.gain.value = 0.55;
+      const lfo = osc(ctx, 'sine', 0.22);
+      const depth = ctx.createGain(); depth.gain.value = 0.45;
+      lfo.connect(depth).connect(env.gain);
+      const flfo = osc(ctx, 'sine', 0.22);
+      const fdepth = ctx.createGain(); fdepth.gain.value = 320;
+      flfo.connect(fdepth).connect(bp.frequency);
+      const wander = osc(ctx, 'sine', 0.031);
+      const wdepth = ctx.createGain(); wdepth.gain.value = 180;
+      wander.connect(wdepth).connect(bp.frequency);
+      src.connect(bp).connect(env).connect(g);
+      nodes.push(src, lfo, flfo, wander);
+    }
+
+    for (const n of nodes) n.start(t0);
+    return { master, pulse, comp, layers, pingEnv, chirpOsc, chirpEnv, nodes };
+  }
+
+  // ---------- Event scheduling ----------
+  function schedulePing(g, t) {
+    const p = g.pingEnv.gain;
+    p.setValueAtTime(0, t);
+    p.linearRampToValueAtTime(1, t + 0.005);
+    p.setValueAtTime(1, t + 0.06);
+    p.linearRampToValueAtTime(0, t + 0.10);
+    return t + 0.10;
+  }
+
+  function scheduleChirpCluster(g, t, rng) {
+    let tt = t;
+    const n = 3 + Math.floor(rng() * 3);
+    for (let i = 0; i < n; i++) {
+      const f0 = 2500 * (0.92 + rng() * 0.16);
+      const f1 = f0 * (1.06 + rng() * 0.12);
+      const dur = 0.09 + rng() * 0.08;
+      const fr = g.chirpOsc.frequency;
+      fr.setValueAtTime(f0, tt);
+      fr.exponentialRampToValueAtTime(f1, tt + dur * 0.7);
+      fr.exponentialRampToValueAtTime(f0 * 0.98, tt + dur);
+      const e = g.chirpEnv.gain;
+      e.setValueAtTime(0, tt);
+      e.linearRampToValueAtTime(1, tt + 0.012);
+      e.exponentialRampToValueAtTime(0.001, tt + dur);
+      e.setValueAtTime(0, tt + dur + 0.002);
+      tt += dur + 0.08 + rng() * 0.16;
+    }
+    return tt;
+  }
+
+  function schedulePulse(g, t, period) {
+    const on = Math.max(0.12, period * PULSE_DUTY);
+    const p = g.pulse.gain;
+    p.setValueAtTime(0, t);
+    p.linearRampToValueAtTime(1, t + 0.03);
+    p.setValueAtTime(1, t + on - 0.08);
+    p.linearRampToValueAtTime(0, t + on);
+  }
+
+  function mulberry32(seed) {
+    let a = seed >>> 0;
+    return () => {
+      a = (a + 0x6D2B79F5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  // ---------- Live engine ----------
+  let ctx = null, graph = null, analyser = null, timer = null, startedAt = 0;
+  const sched = { nextPing: 0, nextChirp: 0, nextPulse: 0 };
+  const events = { ping: [], chirp: [] }; // [start, end] for LED flashes
+
+  async function start() {
+    if (state.running) return;
+    try { ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 48000 }); }
+    catch (_) { ctx = new (window.AudioContext || window.webkitAudioContext)(); }
+    if (ctx.state === 'suspended') await ctx.resume();
+
+    graph = buildGraph(ctx, 0);
+    analyser = ctx.createAnalyser();
+    analyser.fftSize = 4096;
+    analyser.smoothingTimeConstant = 0.75;
+    graph.master.connect(analyser).connect(ctx.destination);
+
+    const now = ctx.currentTime;
+    graph.master.gain.setValueAtTime(0, now);
+    graph.master.gain.linearRampToValueAtTime(state.volume, now + 1.5);
+
+    startedAt = now;
+    sched.nextPing = now + 1.0;
+    sched.nextChirp = now + 4.0;
+    sched.nextPulse = now;
+    events.ping.length = 0; events.chirp.length = 0;
+    if (state.mode === 'pulse') graph.pulse.gain.setValueAtTime(0, now);
+
+    timer = setInterval(tick, 50);
+    tick();
+    state.running = true;
+    ui.power.textContent = 'Stop signal';
+    ui.power.classList.add('on');
+    ui.badge.textContent = `Web Audio · ${ctx.sampleRate / 1000} kHz · running`;
+    requestAnimationFrame(draw);
+  }
+
+  async function stop() {
+    if (!state.running) return;
+    clearInterval(timer); timer = null;
+    const now = ctx.currentTime;
+    graph.master.gain.cancelScheduledValues(now);
+    graph.master.gain.setValueAtTime(graph.master.gain.value, now);
+    graph.master.gain.linearRampToValueAtTime(0, now + 0.3);
+    const c = ctx;
+    state.running = false;
+    ui.power.textContent = 'Start signal';
+    ui.power.classList.remove('on');
+    ui.badge.textContent = 'Web Audio · idle';
+    setTimeout(() => { try { c.close(); } catch (_) {} }, 400);
+    ctx = null; graph = null; analyser = null;
+    for (const l of LAYERS) leds[l.id].className = 'led';
+    drawIdle();
+  }
+
+  function tick() {
+    if (!ctx || !graph) return;
+    const ahead = ctx.currentTime + 0.3;
+    while (sched.nextPing < ahead) {
+      const end = schedulePing(graph, sched.nextPing);
+      events.ping.push([sched.nextPing, end]);
+      sched.nextPing += PING_INTERVAL;
+    }
+    while (sched.nextChirp < ahead) {
+      const end = scheduleChirpCluster(graph, sched.nextChirp, Math.random);
+      events.chirp.push([sched.nextChirp, end]);
+      sched.nextChirp += CHIRP_INTERVAL;
+    }
+    if (state.mode === 'pulse') {
+      while (sched.nextPulse < ahead) {
+        schedulePulse(graph, sched.nextPulse, state.pulsePeriod);
+        sched.nextPulse += state.pulsePeriod;
+      }
+    }
+    const cut = ctx.currentTime - 2;
+    events.ping = events.ping.filter(e => e[1] > cut);
+    events.chirp = events.chirp.filter(e => e[1] > cut);
+  }
+
+  function setMode(mode) {
+    state.mode = mode;
+    ui.modeStraight.classList.toggle('active', mode === 'straight');
+    ui.modePulse.classList.toggle('active', mode === 'pulse');
+    ui.pulseCtl.classList.toggle('hidden', mode !== 'pulse');
+    ui.stMode.textContent = mode;
+    if (ctx && graph) {
+      const now = ctx.currentTime;
+      const p = graph.pulse.gain;
+      p.cancelScheduledValues(now);
+      p.setValueAtTime(p.value, now);
+      if (mode === 'straight') {
+        p.linearRampToValueAtTime(1, now + 0.05);
       } else {
-        stopAudio();
-        document.getElementById("toggleBtn").textContent = "Start";
+        p.linearRampToValueAtTime(0, now + 0.05);
+        sched.nextPulse = now + 0.1;
       }
-      isPlaying = !isPlaying;
+    }
+    persist();
+  }
+
+  function setLayer(id) {
+    const s = state.layers[id];
+    cards[id].classList.toggle('off', !s.on);
+    if (graph) graph.layers[id].gain.setTargetAtTime(s.on ? s.level : 0, ctx.currentTime, 0.02);
+    persist();
+  }
+
+  // ---------- UI ----------
+  const ui = {
+    power: document.getElementById('power'),
+    badge: document.getElementById('srBadge'),
+    modeStraight: document.getElementById('modeStraight'),
+    modePulse: document.getElementById('modePulse'),
+    pulseCtl: document.getElementById('pulseCtl'),
+    pulseRate: document.getElementById('pulseRate'),
+    pulseOut: document.getElementById('pulseOut'),
+    volume: document.getElementById('volume'),
+    volumeOut: document.getElementById('volumeOut'),
+    stElapsed: document.getElementById('stElapsed'),
+    stChirp: document.getElementById('stChirp'),
+    stPing: document.getElementById('stPing'),
+    stMode: document.getElementById('stMode'),
+    exportBtn: document.getElementById('exportBtn'),
+    exportLen: document.getElementById('exportLen'),
+    exportStatus: document.getElementById('exportStatus'),
+    layers: document.getElementById('layers'),
+  };
+  const cards = {}, leds = {};
+
+  for (const l of LAYERS) {
+    const s = state.layers[l.id];
+    const card = document.createElement('article');
+    card.className = 'panel layer' + (s.on ? '' : ' off');
+    card.innerHTML = `
+      <div class="layer-head">
+        <div>
+          <h3>${l.name}</h3>
+          <div class="spec">${l.spec}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="led" data-led="${l.id}" aria-hidden="true"></span>
+          <label class="switch" aria-label="Toggle ${l.name}">
+            <input type="checkbox" data-toggle="${l.id}" ${s.on ? 'checked' : ''}>
+            <span class="track"></span>
+          </label>
+        </div>
+      </div>
+      <p>${l.desc}</p>
+      <div class="level">
+        <input type="range" min="0" max="1" step="0.01" value="${s.level}" data-level="${l.id}" aria-label="${l.name} level">
+        <output class="mono" data-out="${l.id}">${Math.round(s.level * 100)}%</output>
+      </div>`;
+    ui.layers.appendChild(card);
+    cards[l.id] = card;
+    leds[l.id] = card.querySelector('.led');
+    card.querySelector('[data-toggle]').addEventListener('change', e => { s.on = e.target.checked; setLayer(l.id); });
+    const out = card.querySelector('[data-out]');
+    card.querySelector('[data-level]').addEventListener('input', e => {
+      s.level = parseFloat(e.target.value);
+      out.textContent = `${Math.round(s.level * 100)}%`;
+      setLayer(l.id);
     });
-  </script>
+  }
+
+  function dB(v) { return v <= 0 ? '-∞ dB' : `${(20 * Math.log10(v)).toFixed(0)} dB`; }
+  ui.volume.value = state.volume; ui.volumeOut.textContent = dB(state.volume);
+  ui.volume.addEventListener('input', e => {
+    state.volume = parseFloat(e.target.value);
+    ui.volumeOut.textContent = dB(state.volume);
+    if (graph) graph.master.gain.setTargetAtTime(state.volume, ctx.currentTime, 0.03);
+    persist();
+  });
+  ui.pulseRate.value = state.pulsePeriod; ui.pulseOut.textContent = `${state.pulsePeriod.toFixed(2)} s`;
+  ui.pulseRate.addEventListener('input', e => {
+    state.pulsePeriod = parseFloat(e.target.value);
+    ui.pulseOut.textContent = `${state.pulsePeriod.toFixed(2)} s`;
+    persist();
+  });
+  ui.modeStraight.addEventListener('click', () => setMode('straight'));
+  ui.modePulse.addEventListener('click', () => setMode('pulse'));
+  ui.power.addEventListener('click', () => state.running ? stop() : start());
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space' && !/INPUT|SELECT|BUTTON/.test(document.activeElement.tagName)) { e.preventDefault(); state.running ? stop() : start(); }
+  });
+  setMode(state.mode);
+
+  // ---------- Visualiser ----------
+  const canvas = document.getElementById('scope');
+  const g2 = canvas.getContext('2d');
+  const MARKERS = [[100, '100 Hz · 7.83 AM'], [432, '432'], [528, '528'], [2500, '2.5k'], [17000, '17k']];
+  const F_LO = 20, F_HI = 22000;
+  let freqData = null, timeData = null;
+
+  function fitCanvas() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+      canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+    }
+    g2.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return [w, h];
+  }
+  const xOf = (f, w) => Math.log(f / F_LO) / Math.log(F_HI / F_LO) * w;
+
+  function drawGrid(w, h) {
+    g2.clearRect(0, 0, w, h);
+    g2.strokeStyle = 'rgba(120,160,255,0.08)';
+    g2.lineWidth = 1;
+    for (const f of [50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000]) {
+      const x = Math.round(xOf(f, w)) + 0.5;
+      g2.beginPath(); g2.moveTo(x, 0); g2.lineTo(x, h); g2.stroke();
+    }
+    g2.font = '11px "Roboto Mono", monospace';
+    g2.textAlign = 'center';
+    for (const [f, label] of MARKERS) {
+      const x = xOf(f, w);
+      g2.strokeStyle = 'rgba(126,240,200,0.35)';
+      g2.setLineDash([3, 4]);
+      g2.beginPath(); g2.moveTo(x, 28); g2.lineTo(x, h - 18); g2.stroke();
+      g2.setLineDash([]);
+      g2.fillStyle = 'rgba(126,240,200,0.8)';
+      g2.fillText(label, x, h - 5);
+    }
+  }
+
+  function drawIdle() {
+    const [w, h] = fitCanvas();
+    drawGrid(w, h);
+    g2.fillStyle = 'rgba(139,149,173,0.6)';
+    g2.font = '13px Roboto, sans-serif';
+    g2.textAlign = 'center';
+    g2.fillText('press Start to begin', w / 2, h / 2 + 4);
+  }
+
+  function fmtTime(s) { s = Math.max(0, Math.floor(s)); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; }
+
+  function draw() {
+    if (!state.running || !analyser) return;
+    const [w, h] = fitCanvas();
+    if (!freqData || freqData.length !== analyser.frequencyBinCount) {
+      freqData = new Uint8Array(analyser.frequencyBinCount);
+      timeData = new Uint8Array(analyser.fftSize);
+    }
+    analyser.getByteFrequencyData(freqData);
+    analyser.getByteTimeDomainData(timeData);
+    drawGrid(w, h);
+
+    // spectrum
+    const nyq = ctx.sampleRate / 2, bins = freqData.length;
+    const top = 30, bottom = h - 20, span = bottom - top;
+    const grad = g2.createLinearGradient(0, top, 0, bottom);
+    grad.addColorStop(0, 'rgba(126,240,200,0.95)');
+    grad.addColorStop(0.6, 'rgba(126,240,200,0.45)');
+    grad.addColorStop(1, 'rgba(231,97,37,0.25)');
+    g2.fillStyle = grad;
+    g2.beginPath();
+    g2.moveTo(0, bottom);
+    let prevBin = -1;
+    for (let x = 0; x < w; x++) {
+      const f0 = F_LO * Math.pow(F_HI / F_LO, x / w);
+      const f1 = F_LO * Math.pow(F_HI / F_LO, (x + 1) / w);
+      let b0 = Math.floor(f0 / nyq * bins), b1 = Math.max(b0 + 1, Math.ceil(f1 / nyq * bins));
+      b0 = Math.min(bins - 1, Math.max(0, b0)); b1 = Math.min(bins, b1);
+      let v = 0;
+      if (b0 === prevBin) v = freqData[b0]; else for (let b = b0; b < b1; b++) v = Math.max(v, freqData[b]);
+      prevBin = b0;
+      g2.lineTo(x, bottom - (v / 255) * span);
+    }
+    g2.lineTo(w, bottom);
+    g2.closePath();
+    g2.fill();
+
+    // waveform overlay
+    g2.strokeStyle = 'rgba(230,235,245,0.35)';
+    g2.lineWidth = 1;
+    g2.beginPath();
+    const mid = top + span * 0.5, amp = span * 0.42;
+    for (let i = 0; i < timeData.length; i++) {
+      const x = i / (timeData.length - 1) * w;
+      const y = mid + ((timeData[i] - 128) / 128) * amp;
+      i === 0 ? g2.moveTo(x, y) : g2.lineTo(x, y);
+    }
+    g2.stroke();
+
+    // status + LEDs
+    const now = ctx.currentTime;
+    ui.stElapsed.textContent = fmtTime(now - startedAt);
+    ui.stChirp.textContent = `${Math.max(0, sched.nextChirp - now).toFixed(1)} s`;
+    ui.stPing.textContent = `${Math.max(0, sched.nextPing - now).toFixed(1)} s`;
+    const active = (list) => list.some(([a, b]) => now >= a && now <= b);
+    for (const l of LAYERS) {
+      const on = state.layers[l.id].on;
+      const led = leds[l.id];
+      if (!on) { led.className = 'led'; continue; }
+      if (l.steady) led.className = 'led steady';
+      else if (l.id === 'ping17k') led.className = active(events.ping) ? 'led lit' : 'led';
+      else if (l.id === 'chirp') led.className = active(events.chirp) ? 'led lit' : 'led';
+    }
+    requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize', () => { if (!state.running) drawIdle(); });
+  drawIdle();
+
+  // ---------- WAV export ----------
+  function encodeWav(buffer) {
+    const ch = buffer.numberOfChannels, len = buffer.length, sr = buffer.sampleRate;
+    const bytes = 44 + len * ch * 2;
+    const ab = new ArrayBuffer(bytes), dv = new DataView(ab);
+    const str = (o, s) => { for (let i = 0; i < s.length; i++) dv.setUint8(o + i, s.charCodeAt(i)); };
+    str(0, 'RIFF'); dv.setUint32(4, bytes - 8, true); str(8, 'WAVE');
+    str(12, 'fmt '); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, ch, true);
+    dv.setUint32(24, sr, true); dv.setUint32(28, sr * ch * 2, true); dv.setUint16(32, ch * 2, true); dv.setUint16(34, 16, true);
+    str(36, 'data'); dv.setUint32(40, len * ch * 2, true);
+    const chans = []; for (let c = 0; c < ch; c++) chans.push(buffer.getChannelData(c));
+    let o = 44;
+    for (let i = 0; i < len; i++) for (let c = 0; c < ch; c++) {
+      const s = Math.max(-1, Math.min(1, chans[c][i]));
+      dv.setInt16(o, s < 0 ? s * 0x8000 : s * 0x7FFF, true); o += 2;
+    }
+    return new Blob([ab], { type: 'audio/wav' });
+  }
+
+  async function exportWav() {
+    const seconds = parseInt(ui.exportLen.value, 10);
+    ui.exportBtn.disabled = true;
+    ui.exportStatus.textContent = `rendering ${seconds} s offline…`;
+    try {
+      const off = new OfflineAudioContext(2, EXPORT_SR * seconds, EXPORT_SR);
+      const EXPORT_LEVEL = 0.6;
+      const g = buildGraph(off, 0);
+      g.master.connect(off.destination);
+      g.master.gain.setValueAtTime(0, 0);
+      g.master.gain.linearRampToValueAtTime(EXPORT_LEVEL, 1.5);
+      g.master.gain.setValueAtTime(EXPORT_LEVEL, seconds - 1.5);
+      g.master.gain.linearRampToValueAtTime(0, seconds);
+      for (let t = 1; t < seconds - 0.2; t += PING_INTERVAL) schedulePing(g, t);
+      const rng = mulberry32(Date.now() & 0xffffffff);
+      for (let t = 4; t < seconds - 2; t += CHIRP_INTERVAL) scheduleChirpCluster(g, t, rng);
+      if (state.mode === 'pulse') {
+        g.pulse.gain.setValueAtTime(0, 0);
+        for (let t = 0; t < seconds; t += state.pulsePeriod) schedulePulse(g, t, state.pulsePeriod);
+      }
+      const rendered = await off.startRendering();
+      const blob = encodeWav(rendered);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `uap-dog-whistle-${state.mode}-${seconds}s.wav`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      ui.exportStatus.textContent = `done · ${(blob.size / 1048576).toFixed(1)} MB · ${state.mode} · ${seconds} s`;
+    } catch (err) {
+      console.error(err);
+      ui.exportStatus.textContent = `export failed: ${err.message || err}`;
+    } finally {
+      ui.exportBtn.disabled = false;
+    }
+  }
+  ui.exportBtn.addEventListener('click', exportWav);
+
+  // ---------- Cosmic visuals: starfield + plasma ball ----------
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const starsC = document.getElementById('stars');
+  const sg = starsC.getContext('2d');
+  let stars = [], shooting = null;
+
+  function initStars() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    starsC.width = Math.round(innerWidth * dpr); starsC.height = Math.round(innerHeight * dpr);
+    sg.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const n = Math.min(420, Math.round(innerWidth * innerHeight / 5500));
+    stars = Array.from({ length: n }, () => {
+      const tinted = Math.random() < 0.22;
+      return {
+        x: Math.random() * innerWidth, y: Math.random() * innerHeight,
+        r: Math.random() < 0.08 ? 1.4 + Math.random() * 0.8 : 0.3 + Math.random() * 0.9,
+        p: Math.random() * Math.PI * 2, s: 0.4 + Math.random() * 1.4,
+        hue: tinted ? (Math.random() < 0.5 ? 265 + Math.random() * 40 : 190 + Math.random() * 30) : 220,
+        sat: tinted ? 70 : 8,
+      };
+    });
+  }
+
+  function drawStars(t) {
+    sg.clearRect(0, 0, innerWidth, innerHeight);
+    for (const st of stars) {
+      const tw = 0.45 + 0.55 * (0.5 + 0.5 * Math.sin(t * 0.0012 * st.s + st.p));
+      sg.globalAlpha = tw;
+      sg.fillStyle = `hsl(${st.hue} ${st.sat}% 92%)`;
+      sg.beginPath(); sg.arc(st.x, st.y, st.r, 0, Math.PI * 2); sg.fill();
+      if (st.r > 1.4) {
+        sg.globalAlpha = tw * 0.25;
+        sg.beginPath(); sg.arc(st.x, st.y, st.r * 3, 0, Math.PI * 2); sg.fill();
+      }
+      if (!reduceMotion) { st.y += 0.012 * st.s; if (st.y > innerHeight + 2) { st.y = -2; st.x = Math.random() * innerWidth; } }
+    }
+    sg.globalAlpha = 1;
+    if (!reduceMotion) {
+      if (!shooting && Math.random() < 0.0025) {
+        shooting = { x: Math.random() * innerWidth, y: Math.random() * innerHeight * 0.5, vx: 7 + Math.random() * 5, vy: 3 + Math.random() * 2.5, life: 0 };
+        if (Math.random() < 0.5) shooting.vx *= -1;
+      }
+      if (shooting) {
+        const tx = shooting.x - shooting.vx * 14, ty = shooting.y - shooting.vy * 14;
+        const g = sg.createLinearGradient(shooting.x, shooting.y, tx, ty);
+        g.addColorStop(0, 'rgba(255,255,255,0.95)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+        sg.strokeStyle = g; sg.lineWidth = 1.6; sg.lineCap = 'round';
+        sg.beginPath(); sg.moveTo(shooting.x, shooting.y); sg.lineTo(tx, ty); sg.stroke();
+        shooting.x += shooting.vx; shooting.y += shooting.vy;
+        if (++shooting.life > 60) shooting = null;
+      }
+    }
+  }
+
+  // ---------- Luminous orb (the kind reported in CE5 / UAP encounters) ----------
+  const orbC = document.getElementById('plasma');
+  const og = orbC.getContext('2d');
+  const noise = (a, t, s) => 0.5 * Math.sin(3 * a + t * 0.0004 + s) + 0.3 * Math.sin(5 * a - t * 0.0007 + 2 * s) + 0.2 * Math.sin(8 * a + t * 0.0011 + 3 * s);
+  const WRINKLES = Array.from({ length: 90 }, () => ({
+    rho: Math.sqrt(Math.random()) * 0.9, th: Math.random() * Math.PI * 2,
+    dir: Math.random() * Math.PI * 2, len: 0.2 + Math.random() * 0.5,
+    wob: 0.05 + Math.random() * 0.1, freq: 2 + Math.random() * 5, seed: Math.random() * 1000,
+    drift: (Math.random() - 0.5) * 0.00025,
+  }));
+  let orbFreq = null, orbEnergy = 0.3;
+
+  // radial gradient with a solid-colour fallback for engines lacking createRadialGradient
+  function radial(c, x0, y0, r0, x1, y1, r1, stops, fallback) {
+    if (typeof c.createRadialGradient !== 'function') return fallback;
+    const g = c.createRadialGradient(x0, y0, r0, x1, y1, r1);
+    for (const [o, col] of stops) g.addColorStop(o, col);
+    return g;
+  }
+
+  function strokeOn(c, pts, color, width, alpha, blur, dx, dy) {
+    c.globalAlpha = alpha; c.strokeStyle = color; c.lineWidth = width;
+    c.lineJoin = 'round'; c.lineCap = 'round';
+    c.shadowColor = color; c.shadowBlur = blur;
+    c.beginPath(); c.moveTo(pts[0][0] + dx, pts[0][1] + dy);
+    for (let i = 1; i < pts.length; i++) c.lineTo(pts[i][0] + dx, pts[i][1] + dy);
+    c.stroke();
+    c.shadowBlur = 0; c.globalAlpha = 1;
+  }
+
+  // lumpy silhouette, like a blob of mercury
+  function blobPath(c, cx, cy, R, t, amp) {
+    c.beginPath();
+    for (let i = 0; i <= 96; i++) {
+      const a = i / 96 * Math.PI * 2;
+      const r = R * (1 + amp * noise(a, t, 1.7));
+      const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
+      i ? c.lineTo(x, y) : c.moveTo(x, y);
+    }
+    c.closePath();
+  }
+
+  // a meandering crease on the sphere, compressed toward the limb
+  function wrinklePts(w, cx, cy, R, t) {
+    const pts = [], n = 12;
+    const th = w.th + t * w.drift;
+    let x = w.rho * Math.cos(th), y = w.rho * Math.sin(th);
+    let dir = w.dir + noise(th, t, w.seed) * 0.6;
+    for (let i = 0; i <= n; i++) {
+      const rr = Math.min(1, Math.hypot(x, y));
+      const proj = Math.sin(rr * Math.PI / 2);
+      const ang = Math.atan2(y, x);
+      pts.push([cx + Math.cos(ang) * proj * R, cy + Math.sin(ang) * proj * R]);
+      dir += Math.sin(t * 0.0013 + w.seed + (i / n) * w.freq) * w.wob * 3;
+      x += Math.cos(dir) * (w.len / n); y += Math.sin(dir) * (w.len / n);
+      if (Math.hypot(x, y) > 0.97) break;
+    }
+    return pts;
+  }
+
+  function drawOrb(t) {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const size = orbC.clientWidth || 230;
+    if (orbC.width !== Math.round(size * dpr)) { orbC.width = orbC.height = Math.round(size * dpr); }
+    og.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const cx = size / 2, cy = size / 2;
+
+    let energy = 0.3, flash = 0;
+    if (analyser && state.running) {
+      if (!orbFreq || orbFreq.length !== analyser.frequencyBinCount) orbFreq = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(orbFreq);
+      let sum = 0, n = 0;
+      for (let i = 1; i < orbFreq.length; i += 3) { sum += orbFreq[i]; n++; }
+      energy = Math.min(1, (sum / n) / 70);
+      const now = ctx.currentTime;
+      const act = list => list.some(([a, b]) => now >= a && now <= b);
+      if (act(events.chirp) || act(events.ping)) flash = 1;
+    } else {
+      energy = 0.25 + 0.1 * Math.sin(t * 0.0008);
+    }
+    orbEnergy += (energy - orbEnergy) * 0.12;
+    const e = orbEnergy;
+    const R = size * 0.3 * (0.94 + 0.12 * e + 0.05 * flash);
+
+    og.clearRect(0, 0, size, size);
+
+    // halo
+    let g = radial(og, cx, cy, R * 0.6, cx, cy, R * 2.0, [
+      [0, `rgba(200, 205, 255, ${0.35 + 0.35 * e + 0.25 * flash})`], [0.45, 'rgba(130, 115, 255, 0.16)'], [1, 'rgba(0, 0, 0, 0)'],
+    ], null);
+    if (g) { og.fillStyle = g; og.fillRect(0, 0, size, size); }
+
+    // body
+    og.save();
+    blobPath(og, cx, cy, R, t, 0.05 + 0.04 * e);
+    og.clip();
+    og.fillStyle = radial(og, cx - R * 0.25, cy - R * 0.3, R * 0.05, cx, cy, R * 1.08, [
+      [0, '#ffffff'], [0.35, '#e6e9ff'], [0.75, '#aeb3ec'], [1, '#5a5cb4'],
+    ], '#cdd2f6');
+    og.fill(); // fill the blob path itself (still clipped for what follows)
+
+    // crinkled liquid-metal surface: dark crease under, bright ridge over
+    for (const w of WRINKLES) {
+      const pts = wrinklePts(w, cx, cy, R, t);
+      if (pts.length < 3) continue;
+      og.globalCompositeOperation = 'source-over';
+      strokeOn(og, pts, 'rgb(48, 36, 125)', 2.4, 0.42, 0, 0.9, 1.1);
+      og.globalCompositeOperation = 'lighter';
+      strokeOn(og, pts, flash ? '#ffffff' : 'rgb(255, 255, 255)', 1.0, flash ? 1 : 0.7, 3, 0, 0);
+    }
+    og.globalCompositeOperation = 'source-over';
+
+    // limb darkening for roundness
+    g = radial(og, cx, cy, R * 0.5, cx, cy, R * 1.08, [[0, 'rgba(60, 40, 140, 0)'], [1, 'rgba(60, 40, 140, 0.6)']], null);
+    if (g) { og.fillStyle = g; blobPath(og, cx, cy, R, t, 0.05 + 0.04 * e); og.fill(); }
+    og.restore();
+
+    // specular sheen
+    g = radial(og, cx - R * 0.32, cy - R * 0.36, 0, cx - R * 0.32, cy - R * 0.36, R * 0.5, [[0, 'rgba(255,255,255,0.85)'], [1, 'rgba(255,255,255,0)']], null);
+    if (g) { og.globalCompositeOperation = 'lighter'; og.fillStyle = g; og.beginPath(); og.arc(cx, cy, R * 1.1, 0, Math.PI * 2); og.fill(); og.globalCompositeOperation = 'source-over'; }
+
+    // sparks on chirp / ping
+    if (flash && !reduceMotion) {
+      og.globalCompositeOperation = 'lighter';
+      for (let i = 0; i < 7; i++) {
+        const a = Math.random() * Math.PI * 2, r0 = R * 1.02, r1 = R * (1.25 + Math.random() * 0.6);
+        strokeOn(og, [[cx + Math.cos(a) * r0, cy + Math.sin(a) * r0], [cx + Math.cos(a) * r1, cy + Math.sin(a) * r1]], '#ffffff', 1.2, 0.8, 6, 0, 0);
+      }
+      og.globalCompositeOperation = 'source-over';
+    }
+  }
+
+  function cosmicLoop(t) {
+    drawStars(t);
+    drawOrb(t);
+    if (!reduceMotion) requestAnimationFrame(cosmicLoop);
+  }
+  initStars();
+  window.addEventListener('resize', () => { initStars(); if (reduceMotion) cosmicLoop(performance.now()); });
+  cosmicLoop(performance.now()); // first frame synchronously, then self-scheduling via rAF
+
+  // ---------- Orb cursor ----------
+  const cursorOrb = document.getElementById('cursorOrb');
+  if (cursorOrb && window.matchMedia('(pointer: fine)').matches) {
+    document.documentElement.classList.add('orb-cursor');
+    let tx = innerWidth / 2, ty = innerHeight / 2, cxp = tx, cyp = ty, sc = 1, tsc = 1, shown = false;
+    const HOT = 'button, a, input, select, label.switch, .seg';
+    window.addEventListener('pointermove', e => {
+      tx = e.clientX; ty = e.clientY;
+      if (!shown) { shown = true; cursorOrb.style.opacity = '1'; }
+      tsc = e.target && e.target.closest && e.target.closest(HOT) ? 1.65 : 1;
+    }, { passive: true });
+    window.addEventListener('pointerdown', () => { tsc = 0.7; }, { passive: true });
+    window.addEventListener('pointerup', e => { tsc = e.target && e.target.closest && e.target.closest(HOT) ? 1.65 : 1; }, { passive: true });
+    document.documentElement.addEventListener('mouseleave', () => { shown = false; cursorOrb.style.opacity = '0'; });
+    window.addEventListener('blur', () => { shown = false; cursorOrb.style.opacity = '0'; });
+    (function cursorLoop() {
+      if (reduceMotion) { cxp = tx; cyp = ty; sc = tsc; }
+      else { cxp += (tx - cxp) * 0.4; cyp += (ty - cyp) * 0.4; sc += (tsc - sc) * 0.25; }
+      cursorOrb.style.transform = `translate(${cxp}px, ${cyp}px) scale(${sc})`;
+      requestAnimationFrame(cursorLoop);
+    })();
+  }
+})();
+</script>
 </body>
 </html>
