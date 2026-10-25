@@ -8,6 +8,9 @@ on:
     paths:
       - "index.html"
       - "CNAME"
+      - "robots.txt"
+      - "sitemap.xml"
+      - "og-image.png"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -50,7 +53,7 @@ jobs:
       - name: Stage site files
         run: |
           mkdir -p _site
-          cp index.html CNAME _site/
+          cp index.html CNAME robots.txt sitemap.xml og-image.png _site/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
